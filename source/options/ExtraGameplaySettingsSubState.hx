@@ -96,6 +96,12 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		['Vanilla', 'NovaFlare Move', 'NovaFlare Alpha', 'MintRhythm']);
 		addOption(option);
 
+		var option:Option = new Option('Blue Archive MENU',
+		"（施工中）\n《ブルーアーカイブ》风格的主菜单",
+		'BAMenu',
+		'bool');
+		addOption(option);
+
 		super();
 	}
 

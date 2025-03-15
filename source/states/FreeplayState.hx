@@ -29,7 +29,11 @@ class FreeplayState extends MusicBeatState
 	var lerpRating:Float = 0;
 	var intendedScore:Int = 0;
 	var intendedRating:Float = 0;
-
+// 在类字段部分添加滚动条变量
+var scrollBarBG:FlxSprite;
+var scrollBarThumb:FlxSprite;
+private var isDraggingScrollBar:Bool = false;
+private var dragOffsetY:Float = 0;
 	private var grpSongs:FlxTypedGroup<Alphabet>;
 	private var curPlaying:Bool = false;
 
@@ -126,6 +130,8 @@ class FreeplayState extends MusicBeatState
 
 		scoreText = new FlxText(FlxG.width * 0.7, 5, 0, "", 32);
 		scoreText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, RIGHT);
+    // 调整原有分数显示位置避免重叠
+    scoreText.x = FlxG.width * 0.6; // 从0.7改为0.6
 
 		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, 66, 0xFF000000);
 		scoreBG.alpha = 0.6;
@@ -155,7 +161,16 @@ class FreeplayState extends MusicBeatState
 		lerpSelected = curSelected;
 
 		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
+// 在 create() 中找到滚动条创建部分替换为：
+scrollBarBG = new FlxSprite(FlxG.width - 28, 50).makeGraphic(12, FlxG.height - 150, 0xFF444444);
+scrollBarBG.alpha = 0.6;
+add(scrollBarBG);
 
+scrollBarThumb = new FlxSprite(scrollBarBG.x, scrollBarBG.y).makeGraphic(12, 40, 0xFFFFFFFF);
+scrollBarThumb.alpha = 0.8;
+add(scrollBarThumb);
+
+FlxG.mouse.visible = true; // 添加鼠标可见
 		bottomBG = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
 		bottomBG.alpha = 0.6;
 		add(bottomBG);
@@ -413,7 +428,46 @@ class FreeplayState extends MusicBeatState
 		}
 
 		updateTexts(elapsed);
-		super.update(elapsed);
+// 鼠标拖动滚动条处理
+var mousePos = FlxG.mouse.getScreenPosition(camera);
+if (FlxG.mouse.justPressed) {
+    if (scrollBarThumb.overlapsPoint(mousePos)) {
+        isDraggingScrollBar = true;
+        dragOffsetY = mousePos.y - scrollBarThumb.y;
+        FlxG.sound.play(Paths.sound('scrollMenu'), 0.4); // 添加拖动开始音效
+    } else if (scrollBarBG.overlapsPoint(mousePos)) {
+        var localY = mousePos.y - scrollBarBG.y;
+        var percent = localY / scrollBarBG.height;
+        curSelected = Std.int(percent * (songs.length - 1));
+        changeSelection(0, false);
+        FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+        isDraggingScrollBar = true;
+        lerpSelected = curSelected; // 立即同步lerp值
+    }
+}
+
+if (isDraggingScrollBar && FlxG.mouse.pressed) {
+    // 计算滑块新位置
+    var newY = FlxMath.bound(mousePos.y - dragOffsetY, scrollBarBG.y, scrollBarBG.y + scrollBarBG.height - scrollBarThumb.height);
+    
+    // 直接设置滑块位置
+    scrollBarThumb.y = newY;
+    
+    // 根据滑块位置计算选中项
+    var percent = (newY - scrollBarBG.y) / (scrollBarBG.height - scrollBarThumb.height);
+    curSelected = Std.int(percent * (songs.length - 1));
+	curSelected = Math.round(FlxMath.bound(curSelected, 0, songs.length - 1));
+	
+	// 立即同步显示
+    lerpSelected = curSelected; // 跳过平滑过渡
+    changeSelection(0, false);  // 不播放音效
+    updateTexts();              // 强制立即更新
+}
+
+if (FlxG.mouse.justReleased) {
+    isDraggingScrollBar = false;
+}
+super.update(elapsed);
 	}
 
 	public static function destroyFreeplayVocals() {
@@ -557,6 +611,20 @@ class FreeplayState extends MusicBeatState
 			icon.visible = icon.active = true;
 			_lastVisibles.push(i);
 		}
+		var totalSongs:Int = songs.length;
+		if (totalSongs > 0 && !isDraggingScrollBar) { // 拖动时跳过自动更新
+			var thumbHeight:Float = Math.max(20, Math.min(scrollBarBG.height * 0.5, scrollBarBG.height / totalSongs));
+			scrollBarThumb.makeGraphic(12, Math.floor(thumbHeight), 0xFFFFFFFF);
+			
+			var maxScroll:Float = scrollBarBG.height - thumbHeight;
+			var scrollPosition:Float = (lerpSelected / (totalSongs - 1)) * maxScroll;
+			
+			if (Math.abs(scrollBarThumb.y - (scrollBarBG.y + scrollPosition)) > 1) {
+				FlxTween.cancelTweensOf(scrollBarThumb);
+				FlxTween.tween(scrollBarThumb, {y: scrollBarBG.y + scrollPosition}, 0.2, {ease: FlxEase.quadOut});
+			}
+		}
+	
 	}
 
 	override function destroy():Void

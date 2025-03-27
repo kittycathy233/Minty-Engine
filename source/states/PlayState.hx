@@ -575,6 +575,18 @@ class PlayState extends MusicBeatState
 		reloadHealthBarColors();
 		uiGroup.add(healthBar);
 
+		msTimeTxt = new FlxText(0, 0, 400, "", 32);
+		msTimeTxt.setFormat(Paths.font('vcr.ttf'), 23, 0xFF87CEEB, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		msTimeTxt.scrollFactor.set();
+		msTimeTxt.alpha = 0;
+		msTimeTxt.visible = true;
+		msTimeTxt.borderSize = 1.3;
+		/*mstimeTxt.y = comboSpr.y + 20;
+		mstimeTxt.x += comboSpr.x + 100;*/
+		msTimeTxt.x = ClientPrefs.data.comboOffset[2] + 345;
+		msTimeTxt.y = -ClientPrefs.data.comboOffset[3] + 480 ;
+		uiGroup.add(msTimeTxt);
+
 		iconP1 = new HealthIcon(boyfriend.healthIcon, true);
 		iconP1.y = healthBar.y - 75;
 		iconP1.visible = !ClientPrefs.data.hideHud;
@@ -2510,11 +2522,34 @@ class PlayState extends MusicBeatState
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
 		vocals.volume = 1;
 
+		allNotesMs += noteDiff;
+		averageMs = Math.round(allNotesMs/songHits);
+
 		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0) {
 			for (spr in comboGroup) {
 				spr.destroy();
 				comboGroup.remove(spr);
 			}
+		}
+		
+		if (!ClientPrefs.data.rmmsTimeTxt) {
+			msTimeTxt.alpha = ClientPrefs.data.ratingsAlpha;
+			msTimeTxt.scale.set(1.35, 1.2);
+			msTimeTxt.text = Std.string(Math.round(noteDiff)) + "ms";
+
+			if (msTimeTxtTween1 != null){
+				msTimeTxtTween1.cancel(); msTimeTxtTween1.destroy(); // top 10 awesome code
+			}
+			msTimeTxtTween1 = FlxTween.tween(msTimeTxt, {alpha: 0}, 0.2, {
+				onComplete: function(tw:FlxTween) {msTimeTxtTween1 = null;}, startDelay: 0.3
+			});
+
+			if (msTimeTxtTween2 != null){
+				msTimeTxtTween2.cancel(); msTimeTxtTween2.destroy(); // top 10 awesome code
+			}
+			msTimeTxtTween2 = FlxTween.tween(msTimeTxt.scale, {x: 1, y: 1}, 0.4, {
+				ease: FlxEase.circOut,
+			});
 		}
 
 		var placement:Float = FlxG.width * 0.35;
@@ -2663,6 +2698,11 @@ class PlayState extends MusicBeatState
 			numScore.visible = !ClientPrefs.data.hideHud;
 			numScore.antialiasing = antialias;
 
+			if (ratingAlpha != 1)
+				{
+				numScore.alpha = ratingAlpha;
+				}
+	
 			//if (combo >= 10 || combo == 0)
 			if(showComboNum)
 				comboGroup.add(numScore);

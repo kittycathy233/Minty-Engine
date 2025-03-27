@@ -100,7 +100,9 @@ import states.TitleState;
 	//NFE的特性
 	//public var CustomFadeSound:Bool = true;
 	//public var CustomFadeText:Bool = true;
-	
+
+	public var language:String = 'en_us';
+
 	//用于MRE加载图片更改，之后也许需要优化
 	public var randomIndex :Int = 32;
 	public var BAMenu:Bool = false;

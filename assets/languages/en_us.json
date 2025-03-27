@@ -1,0 +1,18 @@
+{
+    "gameplay_title": "Gameplay Options",
+    "exgameplay_title": "Extra Gameplay Options",
+    "downscroll_name": "DownScroll",
+    "downscroll_desc": "If checked, notes scroll downward instead of upward.",
+    "rating_offset_desc": "Adjusts the timing window (in milliseconds) for hitting a \"Sick!\" rating.",
+    "ms_format": "%v ms",
+    "bamenu_desc": "(In Development)\nBlue Archive-style menu interface.",
+    "loading_style_desc": "Sets the transition style between scenes.",
+    "rm_ms_offset_desc": "(In Development)\nRemoves the 'xx ms' display when hitting notes.\nPotentially useful for specific mods.",
+    "scoretxt_bounce_desc": "(In Development)\nAdds angular bounce effects to the score text when hitting notes.",
+    "scoretxt_style_desc": "(In Development)\nModifies the visual style of the score text.",
+    "iconbop_style_desc": "(In Development)\nCustomizes the bounce animation style for icons.",
+    "healthbar_style_desc": "(In Development)\nChanges the visual appearance of the health bar.",
+    "change_language_desc": "Select display language\nYou need to restart the options menu after changing this setting."
+
+
+}

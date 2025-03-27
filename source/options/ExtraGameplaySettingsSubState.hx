@@ -56,7 +56,7 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('HealthBar Style',
-		"（施工中）\n设置健康条的样式",
+		Language.get("healthbar_style_desc"),
 		'healthbarstyle',
 		'string',
 		['Psych', 'OS', 'Kade']);
@@ -64,43 +64,56 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 
 
 		var option:Option = new Option('IconBop Style',
-		"（施工中）\n设置小图标的跳动样式",
+		Language.get("iconbop_style_desc"),
 		'iconbopstyle',
 		'string',
 		['Psych', 'OS', 'MintRhythm', 'Kade', 'NONE']);
 		addOption(option);
 
 		var option:Option = new Option('ScoreTxt Style',
-		'（施工中）\n修改scoreTxt的显示样式',
+		Language.get("scoretxt_style_desc"),
 		'scoretxtstyle',
 		'string',
 		['Psych', 'OS', 'MintRhythm', 'Kade']);
 		addOption(option);
 
 		var option:Option = new Option('Remove the "ms" offset',
-		'（施工中）\n移除Note命中时“xx ms”的显示\n可能会用到的功能',
+		Language.get("rm_ms_offset_desc"),
 		'rmmsTimeTxt',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('ScoreTxt bounce',
-		"（施工中）\n命中Note时，scoreTxt会额外加上角度的跳动效果",
+		Language.get("scoretxt_bounce_desc"),
 		'scoretxtbounce',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Loading Style',
-		"设置场景切换时的风格",
+		Language.get("loading_style_desc"),
 		'customFadeStyle',
 		'string',
 		['Vanilla', 'NovaFlare Move', 'NovaFlare Alpha', 'MintRhythm']);
 		addOption(option);
 
 		var option:Option = new Option('Blue Archive MENU',
-		"（施工中）\n《ブルーアーカイブ》风格的主菜单",
+		Language.get("bamenu_desc"),
 		'BAMenu',
 		'bool');
 		addOption(option);
+
+		var option = new Option(
+            "Engine Language",
+			Language.get("change_language_desc"),
+            'language',
+            'string',
+            ["en_us", "zh_cn", "zh_tw"]
+        );
+		option.onChange = function() {
+			ClientPrefs.saveSettings(); // 保存设置
+			Language.load();            // 立即重载语言
+			refreshAllTexts();          // 自定义方法刷新界面文本
+		};        addOption(option);
 
 		super();
 	}

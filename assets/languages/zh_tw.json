@@ -1,0 +1,16 @@
+{
+    "gameplay_title": "Gameplay Options",
+    "exgameplay_title": "Extra Gameplay Options",
+    "downscroll_name": "譜面下落式游玩",
+    "downscroll_desc": "勾選後音符將向下捲動而非向上",
+    "rating_offset_desc": "調整擊中「Sick!」評價的時間容許範圍（單位：毫秒）",
+    "ms_format": "%vms",
+    "bamenu_desc": "（開發中）\n蔚藍檔案風格介面選單",
+    "loading_style_desc": "設定場景切換時的過場風格",
+    "rm_ms_offset_desc": "（開發中）\n移除擊中音符時顯示的「xx 毫秒」數值\n特定模組可能需要此功能",
+    "scoretxt_bounce_desc": "（開發中）\n擊中音符時為分數文字添加角度彈跳效果",
+    "scoretxt_style_desc": "（開發中）\n修改分數文字的顯示樣式",
+    "iconbop_style_desc": "（開發中）\n自訂圖示的彈跳動畫風格",
+    "healthbar_style_desc": "（開發中）\n變更血條的視覺外觀",
+    "change_language_desc": "選擇顯示語言\n更改此設定後需重新啟動選項菜單"
+}

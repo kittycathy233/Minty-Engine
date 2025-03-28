@@ -106,6 +106,8 @@ import states.TitleState;
 	//用于MRE加载图片更改，之后也许需要优化
 	public var randomIndex :Int = 32;
 	public var BAMenu:Bool = false;
+
+	public var forceSingleSplashAnim:Bool = false;
 }
 
 class ClientPrefs {

@@ -12,6 +12,6 @@
     "scoretxt_style_desc": "（施工中）\n修改scoreTxt的显示样式",
     "iconbop_style_desc": "（施工中）\n设置小图标的跳动样式",
     "healthbar_style_desc": "（施工中）\n设置健康条的样式",
-    "change_language_desc": "更改游戏显示语言\n出于技术原因，修改后需要重进设置才能生效"
-
+    "change_language_desc": "更改游戏显示语言\n出于技术原因，修改后需要重进设置才能生效",
+    "single_splashanim_desc": "强制使用单一的箭头命中特效动画"
 }

@@ -95,6 +95,8 @@ class PlayState extends MusicBeatState
 	var ratingexspr:String = '';
 	var exratingexspr:String = '-extra';
 	var ratingAlpha:Float = ClientPrefs.data.ratingsAlpha;
+	var iconP1InitialY:Float;
+	var iconP2InitialY:Float;
 
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
@@ -592,12 +594,14 @@ class PlayState extends MusicBeatState
 		iconP1.visible = !ClientPrefs.data.hideHud;
 		iconP1.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP1);
+		iconP1InitialY = iconP1.y; // 保存初始Y坐标
 
 		iconP2 = new HealthIcon(dad.healthIcon, false);
 		iconP2.y = healthBar.y - 75;
 		iconP2.visible = !ClientPrefs.data.hideHud;
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP2);
+		iconP2InitialY = iconP2.y; // 保存初始Y坐标
 
 		scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -607,7 +611,7 @@ class PlayState extends MusicBeatState
 		updateScore(false);
 		uiGroup.add(scoreTxt);
 
-		botplayTxt = new FlxText(400, timeBar.y + 55, FlxG.width - 800, "BOTPLAY", 32);
+		botplayTxt = new FlxText(400, timeBar.y + 55, FlxG.width - 800, "AUTO PLAY", 32);
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
 		botplayTxt.borderSize = 1.25;
@@ -1892,22 +1896,29 @@ class PlayState extends MusicBeatState
 
 	// Health icon updaters
 	public dynamic function updateIconsScale(elapsed:Float)
-	{
-		var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-		iconP1.scale.set(mult, mult);
-		iconP1.updateHitbox();
+		{
+			var speedMultiplier:Float = (ClientPrefs.data.iconbopstyle == "Kade") ? 18 : 9; // Kade风格加速缩放
+			var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * speedMultiplier * playbackRate));
+			iconP1.scale.set(mult, mult);
+			iconP1.updateHitbox();
+		
+			mult = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * speedMultiplier * playbackRate));
+			iconP2.scale.set(mult, mult);
+			iconP2.updateHitbox();
+		}
 
-		var mult:Float = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-		iconP2.scale.set(mult, mult);
-		iconP2.updateHitbox();
-	}
+public dynamic function updateIconsPosition()
+{
+    var iconOffset:Int = 26;
+    iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
+    iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
 
-	public dynamic function updateIconsPosition()
-	{
-		var iconOffset:Int = 26;
-		iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
-		iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
-	}
+    // Kade风格向下扩张50像素效果
+    if (ClientPrefs.data.iconbopstyle == "Kade") {
+        iconP1.y = iconP1InitialY + (iconP1.scale.y - 1) * 100;
+        iconP2.y = iconP2InitialY + (iconP2.scale.y - 1) * 100;
+    }
+}
 
 	var iconsAnimations:Bool = true;
 	function set_health(value:Float):Float // You can alter how icon animations work here
@@ -3254,8 +3265,8 @@ class PlayState extends MusicBeatState
 			iconP2.scale.set(1.2, 1.2);
 			}
 			else if (ClientPrefs.data.iconbopstyle == "Kade") {
-				iconP1.scale.set(1.4, 1.4);
-				iconP2.scale.set(1.4, 1.4);
+				iconP1.scale.set(1.6, 1.6);
+				iconP2.scale.set(1.6, 1.6);
 			}
 
 			dancingLeft = !dancingLeft;

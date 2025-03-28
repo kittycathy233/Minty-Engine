@@ -4,7 +4,7 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 {
 	public function new()
 	{
-		title = 'Extra Options\nWTF, silly Chinese Option\n\nNot Done';
+		title = 'Extra Options\nWTF, silly Options\n\nNot Done';
 		rpcTitle = 'Extra Gameplay Settings Menu'; //for Discord Rich Presence
 
 		//I'd suggest using "Downscroll" as an example for making your own option since it is the simplest here
@@ -99,6 +99,12 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Blue Archive MENU',
 		Language.get("bamenu_desc"),
 		'BAMenu',
+		'bool');
+		addOption(option);
+
+		var option:Option = new Option('Single Note Splash Anim',
+		Language.get("single_splashanim_desc"),
+		'forceSingleSplashAnim',
 		'bool');
 		addOption(option);
 

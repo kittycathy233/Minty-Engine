@@ -12,5 +12,7 @@
     "scoretxt_style_desc": "（開發中）\n修改分數文字的顯示樣式",
     "iconbop_style_desc": "（開發中）\n自訂圖示的彈跳動畫風格",
     "healthbar_style_desc": "（開發中）\n變更血條的視覺外觀",
-    "change_language_desc": "選擇顯示語言\n更改此設定後需重新啟動選項菜單"
+    "change_language_desc": "選擇顯示語言\n更改此設定後需重新啟動選項菜單",
+    "single_splashanim_desc": "使用單一的箭頭命中特效動畫"
+
 }

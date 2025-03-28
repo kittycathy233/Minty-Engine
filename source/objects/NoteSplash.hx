@@ -89,7 +89,15 @@ class NoteSplash extends FlxSprite
 		_textureLoaded = texture;
 		offset.set(10, 10);
 
-		var animNum:Int = FlxG.random.int(1, maxAnims);
+		//var animNum:Int = FlxG.random.int(1, maxAnims);
+		var animNum:Int;
+		if(ClientPrefs.data.forceSingleSplashAnim) {
+			animNum = 1;
+		} else {
+			if(maxAnims < 1) maxAnims = 1; // 确保至少有一个动画
+			animNum = FlxG.random.int(1, maxAnims);
+		}
+
 		animation.play('note' + direction + '-' + animNum, true);
 		
 		var minFps:Int = 22;
@@ -147,15 +155,32 @@ class NoteSplash extends FlxSprite
 			animName = config != null ? config.anim : 'note splash';
 
 		while(true) {
-			var animID:Int = maxAnims + 1;
-			for (i in 0...ExtraKeysHandler.instance.data.maxKeys + 1) {
-				if (!addAnimAndCheck('note$i-$animID', '$animName ${ExtraKeysHandler.instance.data.animations[i].note} $animID', 24, false)) {
-					//trace('maxAnims: $maxAnims');
-					return config;
-				}
-			}
-			maxAnims++;
-			//trace('currently: $maxAnims');
+    // 改进后的动画检测逻辑
+    var safetyCheck:Int = 0;
+    while(safetyCheck < 100) { // 防止无限循环
+        safetyCheck++;
+        var animID:Int = maxAnims + 1;
+        var foundAny:Bool = false;
+        
+        for (i in 0...ExtraKeysHandler.instance.data.maxKeys) {
+            if(addAnimAndCheck('note$i-$animID', '$animName ${ExtraKeysHandler.instance.data.animations[i].note} $animID', 24, false)) {
+                foundAny = true;
+            }
+        }
+        
+        if(!foundAny) break;
+        maxAnims++;
+    }
+
+    // 确保至少有一个动画
+    if(maxAnims < 1) {
+        maxAnims = 1;
+        for (i in 0...ExtraKeysHandler.instance.data.maxKeys) {
+            addAnimAndCheck('note$i-1', '$animName ${ExtraKeysHandler.instance.data.animations[i].note} 1', 24, false);
+        }
+    }
+
+    return config;			//trace('currently: $maxAnims');
 		}
 	}
 

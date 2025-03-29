@@ -108,6 +108,12 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
+		var option:Option = new Option('smooth HP Bar',
+		Language.get("smooth_hpbar_desc"),
+		'smoothHP',
+		'bool');
+		addOption(option);
+
 		var option = new Option(
             "Engine Language",
 			Language.get("change_language_desc"),

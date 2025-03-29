@@ -413,6 +413,9 @@ class TitleState extends MusicBeatState
 				titleText.color = FlxColor.WHITE;
 				titleText.alpha = 1;
 				
+				// 重新加載語言
+				Language.load();
+	
 				if(titleText != null) titleText.animation.play('press');
 
 				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);

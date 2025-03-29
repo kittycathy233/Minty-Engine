@@ -98,6 +98,10 @@ class PlayState extends MusicBeatState
 	var iconP1InitialY:Float;
 	var iconP2InitialY:Float;
 
+	var displayedHealth:Float = 1;
+	var healthLerp:Float = 1; // 用于平滑过渡
+	var maxHealth:Float = 2; // 默认血条范围是0-2
+
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
 
@@ -568,6 +572,7 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
+		
 		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
 		healthBar.screenCenter(X);
 		healthBar.leftToRight = false;
@@ -759,7 +764,8 @@ class PlayState extends MusicBeatState
 	public function reloadHealthBarColors() {
 		healthBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
 			FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
-	}
+			healthBar.percent = (displayedHealth / maxHealth) * 100;
+			}
 
 	public function addCharacterToList(newCharacter:String, type:Int) {
 		switch(type) {
@@ -1753,6 +1759,14 @@ class PlayState extends MusicBeatState
 		if (healthBar.bounds.max != null && health > healthBar.bounds.max)
 			health = healthBar.bounds.max;
 
+		// 平滑处理显示血量
+		if(ClientPrefs.data.smoothHP) {
+			healthLerp = FlxMath.lerp(healthLerp, health, elapsed * 10); // 调整这个系数控制平滑速度
+			displayedHealth = healthLerp;
+			}
+
+		// 更新血条和图标
+		updateHealthBar();
 		updateIconsScale(elapsed);
 		updateIconsPosition();
 
@@ -1897,7 +1911,11 @@ class PlayState extends MusicBeatState
 	// Health icon updaters
 	public dynamic function updateIconsScale(elapsed:Float)
 		{
-			var speedMultiplier:Float = (ClientPrefs.data.iconbopstyle == "Kade") ? 18 : 9; // Kade风格加速缩放
+			var percent:Float = (displayedHealth / 2) * 100; // 根据实际血条范围调整
+			iconP1.animation.curAnim.curFrame = (percent < 20) ? 1 : 0;
+			iconP2.animation.curAnim.curFrame = (percent > 80) ? 1 : 0;
+
+			var speedMultiplier:Float = (ClientPrefs.data.iconbopstyle == "Kade") ? 27 : 9; // Kade风格加速缩放
 			var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * speedMultiplier * playbackRate));
 			iconP1.scale.set(mult, mult);
 			iconP1.updateHitbox();
@@ -1915,27 +1933,31 @@ public dynamic function updateIconsPosition()
 
     // Kade风格向下扩张50像素效果
     if (ClientPrefs.data.iconbopstyle == "Kade") {
-        iconP1.y = iconP1InitialY + (iconP1.scale.y - 1) * 100;
-        iconP2.y = iconP2InitialY + (iconP2.scale.y - 1) * 100;
+        iconP1.y = iconP1InitialY + (iconP1.scale.y - 1) * 75;
+        iconP2.y = iconP2InitialY + (iconP2.scale.y - 1) * 75;
     }
 }
 
 	var iconsAnimations:Bool = true;
-	function set_health(value:Float):Float // You can alter how icon animations work here
-	{
-		if(!iconsAnimations || healthBar == null || !healthBar.enabled || healthBar.valueFunction == null)
-		{
+	// PlayState.hx
+	function set_health(value:Float):Float {
+		if (health == value) return value;
+		
+		var ret:Dynamic = callOnScripts('preSetHealth', [value]);
+		if(ret != LuaUtils.Function_Stop) {
+			// 使用healthBar.bounds.max作为上限（如果存在），否则使用maxHealth
+			var upperBound:Float = (healthBar != null && healthBar.bounds.max != null) ? healthBar.bounds.max : maxHealth;
+			value = Math.max(0, Math.min(value, upperBound));
+			
+			// 立即更新实际health值
 			health = value;
-			return health;
+			
+			// 非平滑模式时直接同步显示值
+			if(!ClientPrefs.data.smoothHP) {
+				displayedHealth = value;
+				healthLerp = value;
+			}
 		}
-
-		// update health bar
-		health = value;
-		var newPercent:Null<Float> = FlxMath.remapToRange(FlxMath.bound(healthBar.valueFunction(), healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min, healthBar.bounds.max, 0, 100);
-		healthBar.percent = (newPercent != null ? newPercent : 0);
-
-		iconP1.animation.curAnim.curFrame = (healthBar.percent < 20) ? 1 : 0; //If health is under 20%, change player icon to frame 1 (losing icon), otherwise, frame 0 (normal)
-		iconP2.animation.curAnim.curFrame = (healthBar.percent > 80) ? 1 : 0; //If health is over 80%, change opponent icon to frame 1 (losing icon), otherwise, frame 0 (normal)
 		return health;
 	}
 
@@ -1966,6 +1988,18 @@ public dynamic function updateIconsPosition()
 		if(autoUpdateRPC) DiscordClient.changePresence(detailsPausedText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
 		#end
 	}
+
+	// PlayState.hx
+function updateHealthBar() {
+    if(healthBar == null || healthBar.valueFunction == null) return;
+    
+    var percent:Float = FlxMath.remapToRange(
+        FlxMath.bound(displayedHealth, healthBar.bounds.min, healthBar.bounds.max),
+        healthBar.bounds.min, healthBar.bounds.max, 0, 100
+    );
+ // 使用percent属性而不是setPercent方法
+ healthBar.percent = (displayedHealth / maxHealth) * 100;
+}
 
 	function openChartEditor()
 	{
@@ -2521,7 +2555,7 @@ public dynamic function updateIconsPosition()
 		}
 
 		for (rating in ratingsData)
-			Paths.image(uiPrefix + rating.image + uiSuffix);
+			Paths.image(uiPrefix + rating.image + ratingexspr+ uiSuffix);
 		for (theEXrating in ratingsData)
 			Paths.image(uiPrefix + theEXrating.image + exratingexspr + uiSuffix);
 			for (i in 0...10)
@@ -3260,15 +3294,15 @@ public dynamic function updateIconsPosition()
 
 		if (ClientPrefs.data.iconbopstyle != "NONE") 
 			{
-
+				if (ClientPrefs.data.iconbopstyle == "Kade") {
+					iconP1.scale.set(1.4, 1.4);
+					iconP2.scale.set(1.4, 1.4);
+					}
+				else {
 			iconP1.scale.set(1.2, 1.2);
 			iconP2.scale.set(1.2, 1.2);
+				}
 			}
-			else if (ClientPrefs.data.iconbopstyle == "Kade") {
-				iconP1.scale.set(1.6, 1.6);
-				iconP2.scale.set(1.6, 1.6);
-			}
-
 			dancingLeft = !dancingLeft;
 	
 			if (ClientPrefs.data.iconbopstyle == "OS") {
@@ -3695,6 +3729,7 @@ public dynamic function updateIconsPosition()
 		#end
 	}
 
+	
 	public function initLuaShader(name:String, ?glslVersion:Int = 120)
 	{
 		if(!ClientPrefs.data.shaders) return false;

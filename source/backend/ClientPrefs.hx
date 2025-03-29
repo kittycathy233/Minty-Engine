@@ -107,7 +107,9 @@ import states.TitleState;
 	public var randomIndex :Int = 32;
 	public var BAMenu:Bool = false;
 
+	public var smoothHP:Bool = true;
 	public var forceSingleSplashAnim:Bool = false;
+
 }
 
 class ClientPrefs {

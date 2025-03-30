@@ -104,6 +104,11 @@ class PlayState extends MusicBeatState
 
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
+	// 在PlayState类中添加这两个变量
+	public var botHits:Int = 0;
+	public var botNotesHit:Float = 0.0;
+	public var botScore:Int = 0;
+	public var botNotesMs:Float = 0;
 
 	public var ratingStuff:Array<Dynamic> = ClientPrefs.data.scoretxtstyle == "Kade" ?
     [
@@ -582,15 +587,15 @@ class PlayState extends MusicBeatState
 		reloadHealthBarColors();
 		uiGroup.add(healthBar);
 
-		msTimeTxt = new FlxText(0, 0, 400, "", 32);
-		msTimeTxt.setFormat(Paths.font('vcr.ttf'), 23, 0xFF87CEEB, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		msTimeTxt = new FlxText(0, 0, 200, "", 32);
+		msTimeTxt.setFormat(Paths.font('vcr.ttf'), 23, 0xFF87CEEB, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		msTimeTxt.scrollFactor.set();
 		msTimeTxt.alpha = 0;
 		msTimeTxt.visible = true;
 		msTimeTxt.borderSize = 1.3;
 		/*mstimeTxt.y = comboSpr.y + 20;
 		mstimeTxt.x += comboSpr.x + 100;*/
-		msTimeTxt.x = ClientPrefs.data.comboOffset[2] + 345;
+		msTimeTxt.x = ClientPrefs.data.comboOffset[2] + 450;
 		msTimeTxt.y = -ClientPrefs.data.comboOffset[3] + 480 ;
 		uiGroup.add(msTimeTxt);
 
@@ -1179,20 +1184,31 @@ class PlayState extends MusicBeatState
 			return;
 
 		var str:String = ratingName;
-		if(totalPlayed != 0)
+		if(totalPlayed != 0 || botHits != 0)
 		{
-			var percent:Float = CoolUtil.floorDecimal(ratingPercent * 100, 2);
-			str += ' (${percent}%) - ${ratingFC}';
+		var percent:Float = CoolUtil.floorDecimal( (cpuControlled ? botRatingPercent : ratingPercent) * 100, 2);
+				str += ' (${percent}%) - ${ratingFC}';
 		}
+		var tempScore:String = '';
 
-		var tempScore:String = 'Score: ${songScore}'
+		if (cpuControlled) {
+			tempScore = 'AUTOPLAY\nScore: ${botScore}'
+			+ ' | Rating: ${str}'
+			+ (!instakillOnMiss ? '\nMisses: ${songMisses}' : "");
+			// "tempScore" variable is used to prevent another memory leak, just in case
+			// "\n" here prevents the text from being cut off by beat zooms
+			scoreTxt.text = '${tempScore}\n';
+		}
+		else {
+		tempScore = 'Score: ${songScore}'
 		+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
 		+ ' | Rating: ${str}';
 		// "tempScore" variable is used to prevent another memory leak, just in case
 		// "\n" here prevents the text from being cut off by beat zooms
 		scoreTxt.text = '${tempScore}\n';
+		}
 
-		if (!miss && !cpuControlled)
+		if (!miss)
 			doScoreBop();
 
 		callOnScripts('onUpdateScore', [miss]);
@@ -1857,7 +1873,7 @@ class PlayState extends MusicBeatState
 
 							if(daNote.mustPress)
 							{
-								if(cpuControlled && !daNote.blockHit && daNote.canBeHit && (daNote.isSustainNote || daNote.strumTime <= Conductor.songPosition))
+								if(/*cpuControlled && */!daNote.blockHit && daNote.canBeHit && (daNote.isSustainNote || daNote.strumTime <= Conductor.songPosition))
 									goodNoteHit(daNote);
 							}
 							else if (daNote.wasGoodHit && !daNote.hitByOpponent && !daNote.ignoreNote)
@@ -1868,7 +1884,7 @@ class PlayState extends MusicBeatState
 							// Kill extremely late notes and cause misses
 							if (Conductor.songPosition - daNote.strumTime > noteKillOffset)
 							{
-								if (daNote.mustPress && !cpuControlled && !daNote.ignoreNote && !endingSong && (daNote.tooLate || !daNote.wasGoodHit))
+								if (daNote.mustPress/* && !cpuControlled */&& !daNote.ignoreNote && !endingSong && (daNote.tooLate || !daNote.wasGoodHit))
 									noteMiss(daNote);
 
 								daNote.active = daNote.visible = false;
@@ -2129,13 +2145,13 @@ function updateHealthBar() {
 				gfSpeed = Math.round(flValue1);
 
 			case 'Add Camera Zoom':
-				if(ClientPrefs.data.camZooms && FlxG.camera.zoom < 1.35) {
+				//if(ClientPrefs.data.camZooms && FlxG.camera.zoom < 1.35) {
 					if(flValue1 == null) flValue1 = 0.015;
 					if(flValue2 == null) flValue2 = 0.03;
 
 					FlxG.camera.zoom += flValue1;
 					camHUD.zoom += flValue2;
-				}
+				//}
 
 			case 'Play Animation':
 				//trace('Anim to play: ' + value1);
@@ -2567,9 +2583,13 @@ function updateHealthBar() {
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
 		vocals.volume = 1;
 
+		if(!cpuControlled){
 		allNotesMs += noteDiff;
 		averageMs = Math.round(allNotesMs/songHits);
-
+		} else {
+			botNotesMs += noteDiff;
+			averageMs = Math.round(allNotesMs/botHits);
+		}
 		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0) {
 			for (spr in comboGroup) {
 				spr.destroy();
@@ -2580,7 +2600,8 @@ function updateHealthBar() {
 		if (!ClientPrefs.data.rmmsTimeTxt) {
 			msTimeTxt.alpha = ClientPrefs.data.ratingsAlpha;
 			msTimeTxt.scale.set(1.35, 1.2);
-			msTimeTxt.text = Std.string(Math.round(noteDiff)) + "ms";
+			if(cpuControlled) msTimeTxt.text = Std.string(Math.round(noteDiff)) + "ms(BOT)";
+			else msTimeTxt.text = Std.string(Math.round(noteDiff)) + "ms";
 
 			if (msTimeTxtTween1 != null){
 				msTimeTxtTween1.cancel(); msTimeTxtTween1.destroy(); // top 10 awesome code
@@ -2613,6 +2634,15 @@ function updateHealthBar() {
 
 		if(daRating.noteSplash && !note.noteSplashData.disabled)
 			spawnNoteSplashOnNote(note);
+
+		if(cpuControlled) {
+			botScore += score;
+			if(!note.ratingDisabled) {
+				botHits++;
+				botNotesHit += daRating.ratingMod;
+				RecalculateRating(false);
+			}
+		}
 
 		if(!practiceMode && !cpuControlled) {
 			songScore += score;
@@ -3120,7 +3150,8 @@ function updateHealthBar() {
 	public function goodNoteHit(note:Note):Void
 	{
 		if(note.wasGoodHit) return;
-		if(cpuControlled && note.ignoreNote) return;
+		if(note.ignoreNote) return;
+		//if(cpuControlled && note.ignoreNote) return;
 
 		var isSus:Bool = note.isSustainNote; //GET OUT OF MY HEAD, GET OUT OF MY HEAD, GET OUT OF MY HEAD
 		var leData:Int = Math.round(Math.abs(note.noteData));
@@ -3623,7 +3654,9 @@ function updateHealthBar() {
 
 	public var ratingName:String = '?';
 	public var ratingPercent:Float;
+	public var botRatingPercent:Float;
 	public var ratingFC:String;
+
 	public function RecalculateRating(badHit:Bool = false) {
 		setOnScripts('score', songScore);
 		setOnScripts('misses', songMisses);
@@ -3634,10 +3667,13 @@ function updateHealthBar() {
 		if(ret != LuaUtils.Function_Stop)
 		{
 			ratingName = '?';
-			if(totalPlayed != 0) //Prevent divide by 0
+
+			if(totalPlayed != 0 || botHits != 0) //Prevent divide by 0
 			{
 				// Rating Percent
 				ratingPercent = Math.min(1, Math.max(0, totalNotesHit / totalPlayed));
+				botRatingPercent = Math.min(1, Math.max(0, botNotesHit / botHits));
+
 				//trace((totalNotesHit / totalPlayed) + ', Total: ' + totalPlayed + ', notes hit: ' + totalNotesHit);
 
 				// Rating Name

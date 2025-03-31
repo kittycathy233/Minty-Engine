@@ -10,6 +10,8 @@ import backend.Song;
 import backend.Section;
 import backend.Rating;
 
+import states.MainMenuState;
+
 import flixel.FlxBasic;
 import flixel.FlxObject;
 import flixel.FlxSubState;
@@ -62,6 +64,7 @@ import psychlua.HScript;
 import tea.SScript;
 #end
 
+import lime.app.Application; // 新增导入
 /**
  * This is where all the Gameplay stuff happens and is managed
  *
@@ -97,6 +100,7 @@ class PlayState extends MusicBeatState
 	var ratingAlpha:Float = ClientPrefs.data.ratingsAlpha;
 	var iconP1InitialY:Float;
 	var iconP2InitialY:Float;
+	var botCheck:Bool = false; // 默认血条范围是0-2
 
 	var displayedHealth:Float = 1;
 	var healthLerp:Float = 1; // 用于平滑过渡
@@ -629,6 +633,16 @@ class PlayState extends MusicBeatState
 		uiGroup.add(botplayTxt);
 		if(ClientPrefs.data.downScroll)
 			botplayTxt.y = timeBar.y - 78;
+
+		// 添加水印文本
+		var watermarkText = new FlxText(10, FlxG.height - 20, 0, 
+    	SONG.song + "-" + storyDifficultyText + ' | MintRhythm Engine v${MainMenuState.mintrhythmEngineVersion}', 
+    		16);
+		watermarkText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		watermarkText.scrollFactor.set();
+		watermarkText.borderSize = 1.25;
+		watermarkText.visible = !ClientPrefs.data.hideHud;
+		uiGroup.add(watermarkText);
 
 		uiGroup.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
@@ -1192,9 +1206,10 @@ class PlayState extends MusicBeatState
 		var tempScore:String = '';
 
 		if (cpuControlled) {
-			tempScore = 'AUTOPLAY\nScore: ${botScore}'
+			tempScore = 'Score: ${botScore}'
+			+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
 			+ ' | Rating: ${str}'
-			+ (!instakillOnMiss ? '\nMisses: ${songMisses}' : "");
+			+ ' | BOTPLAY';
 			// "tempScore" variable is used to prevent another memory leak, just in case
 			// "\n" here prevents the text from being cut off by beat zooms
 			scoreTxt.text = '${tempScore}\n';
@@ -1531,7 +1546,7 @@ class PlayState extends MusicBeatState
 	}
 
 	function eventEarlyTrigger(event:EventNote):Float {
-		var returnedValue:Null<Float> = callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true, [], [0]);
+		var returnedValue:Null<Float> = callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.value3, event.value4, event.strumTime], true, [], [0]);
 		if(returnedValue != null && returnedValue != 0 && returnedValue != LuaUtils.Function_Continue) {
 			return returnedValue;
 		}
@@ -1552,11 +1567,13 @@ class PlayState extends MusicBeatState
 			strumTime: event[0] + ClientPrefs.data.noteOffset,
 			event: event[1][i][0],
 			value1: event[1][i][1],
-			value2: event[1][i][2]
+			value2: event[1][i][2],
+			value3: event[1][i][3],
+			value4: event[1][i][4]
 		};
 		eventNotes.push(subEvent);
 		eventPushed(subEvent);
-		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.value3 != null ? subEvent.value3 : '', subEvent.value4 != null ? subEvent.value4 : '', subEvent.strumTime]);
 	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
@@ -1781,6 +1798,7 @@ class PlayState extends MusicBeatState
 			displayedHealth = healthLerp;
 			}
 
+		if(cpuControlled) botCheck = true; 
 		// 更新血条和图标
 		updateHealthBar();
 		updateIconsScale(elapsed);
@@ -1873,7 +1891,7 @@ class PlayState extends MusicBeatState
 
 							if(daNote.mustPress)
 							{
-								if(/*cpuControlled && */!daNote.blockHit && daNote.canBeHit && (daNote.isSustainNote || daNote.strumTime <= Conductor.songPosition))
+								if(cpuControlled && !daNote.blockHit && daNote.canBeHit && (daNote.isSustainNote || daNote.strumTime <= Conductor.songPosition))
 									goodNoteHit(daNote);
 							}
 							else if (daNote.wasGoodHit && !daNote.hitByOpponent && !daNote.ignoreNote)
@@ -1930,12 +1948,24 @@ class PlayState extends MusicBeatState
 			var percent:Float = (displayedHealth / 2) * 100; // 根据实际血条范围调整
 			iconP1.animation.curAnim.curFrame = (percent < 20) ? 1 : 0;
 			iconP2.animation.curAnim.curFrame = (percent > 80) ? 1 : 0;
-
-			var speedMultiplier:Float = (ClientPrefs.data.iconbopstyle == "Kade") ? 27 : 9; // Kade风格加速缩放
+		
+			// 根据 ClientPrefs.data.iconbopstyle 设置 speedMultiplier
+			var speedMultiplier:Float;
+			switch (ClientPrefs.data.iconbopstyle)
+			{
+				case "Kade":
+					speedMultiplier = 27;
+				case "Leather":
+					speedMultiplier = 7;
+				default:
+					speedMultiplier = 9;
+			}
+		
+			// Kade 和 Leather 风格的缩放逻辑
 			var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * speedMultiplier * playbackRate));
 			iconP1.scale.set(mult, mult);
 			iconP1.updateHitbox();
-		
+			
 			mult = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * speedMultiplier * playbackRate));
 			iconP2.scale.set(mult, mult);
 			iconP2.updateHitbox();
@@ -1952,6 +1982,11 @@ public dynamic function updateIconsPosition()
         iconP1.y = iconP1InitialY + (iconP1.scale.y - 1) * 75;
         iconP2.y = iconP2InitialY + (iconP2.scale.y - 1) * 75;
     }
+	if (ClientPrefs.data.iconbopstyle == "Leather") {
+        iconP1.y = iconP1InitialY + (iconP1.scale.y - 1) * 60;
+        iconP2.y = iconP2InitialY + (iconP2.scale.y - 1) * 60;
+    }
+
 }
 
 	var iconsAnimations:Bool = true;
@@ -2100,16 +2135,28 @@ function updateHealthBar() {
 			if(eventNotes[0].value2 != null)
 				value2 = eventNotes[0].value2;
 
-			triggerEvent(eventNotes[0].event, value1, value2, leStrumTime);
+			var value3:String = '';
+			if(eventNotes[0].value3 != null)
+				value3 = eventNotes[0].value3;
+
+			var value4:String = '';
+			if(eventNotes[0].value4 != null)
+				value4 = eventNotes[0].value4;
+
+			triggerEvent(eventNotes[0].event, value1, value2, value3, value4, leStrumTime);
 			eventNotes.shift();
 		}
 	}
 
-	public function triggerEvent(eventName:String, value1:String, value2:String, strumTime:Float) {
+	public function triggerEvent(eventName:String, value1:String, value2:String, value3:String, value4:String, strumTime:Float) {
 		var flValue1:Null<Float> = Std.parseFloat(value1);
 		var flValue2:Null<Float> = Std.parseFloat(value2);
+		var flValue3:Null<Float> = Std.parseFloat(value3);
+		var flValue4:Null<Float> = Std.parseFloat(value4);
 		if(Math.isNaN(flValue1)) flValue1 = null;
 		if(Math.isNaN(flValue2)) flValue2 = null;
+		if(Math.isNaN(flValue3)) flValue3 = null;
+		if(Math.isNaN(flValue4)) flValue4 = null;
 
 		switch(eventName) {
 			case 'Hey!':
@@ -2340,10 +2387,17 @@ function updateHealthBar() {
 			case 'Play Sound':
 				if(flValue2 == null) flValue2 = 1;
 				FlxG.sound.play(Paths.sound(value1), flValue2);
+
+			case 'Change Window Title':
+				if (value1 == null || value1.trim() == '') {
+					Application.current.window.title = 'Friday Night Funkin\': MintRhythm Engine'; // 空值时恢复默认
+				} else {
+					Application.current.window.title = value1; // 非空时设置新标题
+				}
 		}
 
 		stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));
-		callOnScripts('onEvent', [eventName, value1, value2, strumTime]);
+		callOnScripts('onEvent', [eventName, value1, value2, value3, value4, strumTime]);
 	}
 
 	function moveCameraSection(?sec:Null<Int>):Void {
@@ -2457,6 +2511,8 @@ function updateHealthBar() {
 		deathCounter = 0;
 		seenCutscene = false;
 
+		Application.current.window.title = 'Friday Night Funkin\': MintRhythm Engine';
+
 		#if ACHIEVEMENTS_ALLOWED
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
 		checkForAchievement([weekNoMiss, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'debugger']);
@@ -2468,7 +2524,7 @@ function updateHealthBar() {
 			#if !switch
 			var percent:Float = ratingPercent;
 			if(Math.isNaN(percent)) percent = 0;
-			Highscore.saveScore(SONG.song, songScore, storyDifficulty, percent);
+			if(!botCheck)Highscore.saveScore(SONG.song, songScore, storyDifficulty, percent);
 			#end
 			playbackRate = 1;
 
@@ -2636,7 +2692,7 @@ function updateHealthBar() {
 			spawnNoteSplashOnNote(note);
 
 		if(cpuControlled) {
-			botScore += score;
+			songScore += score;
 			if(!note.ratingDisabled) {
 				botHits++;
 				botNotesHit += daRating.ratingMod;
@@ -3329,6 +3385,11 @@ function updateHealthBar() {
 					iconP1.scale.set(1.4, 1.4);
 					iconP2.scale.set(1.4, 1.4);
 					}
+				else if (ClientPrefs.data.iconbopstyle == "Leather") {
+					iconP1.scale.set(1.3, 1.3);
+					iconP2.scale.set(1.3, 1.3);
+					}
+	
 				else {
 			iconP1.scale.set(1.2, 1.2);
 			iconP2.scale.set(1.2, 1.2);

@@ -67,7 +67,7 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		Language.get("iconbop_style_desc"),
 		'iconbopstyle',
 		'string',
-		['Psych', 'OS', 'MintRhythm', 'Kade', 'NONE']);
+		['Psych', 'OS', 'MintRhythm', 'Kade', 'Leather', 'NONE']);
 		addOption(option);
 
 		var option:Option = new Option('ScoreTxt Style',

@@ -50,6 +50,11 @@
 	<!--Switch-specific-->
 	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
 
+<!-- 启用高质量渲染 -->
+<window allow-high-dpi="true" /> <!-- 支持高 DPI 显示器 -->
+<haxedef name="lime-bitmap-smoothing" /> <!-- 强制启用平滑 -->
+<haxedef name="openfl-bitmap-smoothing" /> <!-- OpenFL 平滑 -->
+<set name="lime-legacy-bitmap-smoothing" value="false" /> <!-- 禁用旧版平滑（避免冲突） -->
 	<!-- _____________________________ Path Settings ____________________________ -->
 
 	<set name="BUILD_DIR" value="export/debug" if="debug" />

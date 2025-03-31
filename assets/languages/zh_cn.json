@@ -15,5 +15,7 @@
     "change_language_desc": "更改游戏显示语言\n出于技术原因，修改后需要重进设置才能生效",
     "single_splashanim_desc": "强制使用单一的箭头命中特效动画",
     "game_font": "SourceHanSansCN-Bold.otf",
-    "smooth_hpbar_desc": "使血条看起来更丝滑"
+    "smooth_hpbar_desc": "使血条看起来更丝滑",
+    "musicplayer_desc": "设置音乐播放器的样式",
+    "musicplayer_text": "SPACE:暂停/播放 | ←/→:快退/快进 | R:重置速度 | CTRL:返回"
 }

@@ -1,27 +1,28 @@
 package states;
-
+//我想做斜30度的歌名显示，还有仿BA新版剧情的那种界面
 import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
 
 import objects.HealthIcon;
-import objects.MusicPlayer;
+import objects.MusicPlayerNew;
 
 import substates.GameplayChangersSubstate;
 import substates.ResetScoreSubState;
 
 import flixel.math.FlxMath;
+import flixel.text.FlxText;
 
 class FreeplayStateNew extends MusicBeatState
 {
-	var songs:Array<SongMetadata> = [];
+	var songs:Array<SongMetadataNew> = [];
 
-	var selector:FlxText;
 	private static var curSelected:Int = 0;
 	var lerpSelected:Float = 0;
 	var curDifficulty:Int = -1;
 	private static var lastDifficultyName:String = Difficulty.getDefault();
 
+	// UI 元素
 	var scoreBG:FlxSprite;
 	var scoreText:FlxText;
 	var diffText:FlxText;
@@ -29,28 +30,29 @@ class FreeplayStateNew extends MusicBeatState
 	var lerpRating:Float = 0;
 	var intendedScore:Int = 0;
 	var intendedRating:Float = 0;
-// 在类字段部分添加滚动条变量
-var scrollBarBG:FlxSprite;
-var scrollBarThumb:FlxSprite;
-private var isDraggingScrollBar:Bool = false;
-private var dragOffsetY:Float = 0;
-	private var grpSongs:FlxTypedGroup<Alphabet>;
-	private var curPlaying:Bool = false;
 
+	// 滚动条
+	var scrollBarBG:FlxSprite;
+	var scrollBarThumb:FlxSprite;
+	private var isDraggingScrollBar:Bool = false;
+	private var dragOffsetY:Float = 0;
+
+	// 新文本系统
+	private var grpSongs:FlxTypedGroup<FlxText>;
 	private var iconArray:Array<HealthIcon> = [];
+	var textBaseY:Float = 120; // 文本基础Y坐标
+	var textSpacing:Float = 60; // 文本间距
 
+	// 其他元素
 	var bg:FlxSprite;
 	var intendedColor:Int;
 	var colorTween:FlxTween;
-
 	var missingTextBG:FlxSprite;
 	var missingText:FlxText;
-
 	var bottomString:String;
 	var bottomText:FlxText;
 	var bottomBG:FlxSprite;
-
-	var player:MusicPlayer;
+	var player:MusicPlayerNew;
 
 	override function create()
 	{
@@ -97,39 +99,27 @@ private var dragOffsetY:Float = 0;
 		add(bg);
 		bg.screenCenter();
 
-		grpSongs = new FlxTypedGroup<Alphabet>();
+		grpSongs = new FlxTypedGroup<FlxText>();
 		add(grpSongs);
 
 		for (i in 0...songs.length)
-		{
-			var songText:Alphabet = new Alphabet(90, 320, songs[i].songName, true);
-			songText.targetY = i;
-			grpSongs.add(songText);
-
-			songText.scaleX = Math.min(1, 980 / songText.width);
-			songText.snapToPosition();
-
-			Mods.currentModDirectory = songs[i].folder;
-			var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
-			icon.sprTracker = songText;
-
-			
-			// too laggy with a lot of songs, so i had to recode the logic for it
-			songText.visible = songText.active = songText.isMenuItem = false;
-			icon.visible = icon.active = false;
-
-			// using a FlxGroup is too much fuss!
-			iconArray.push(icon);
-			add(icon);
-
-			// songText.x += 40;
-			// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-			// songText.screenCenter(X);
-		}
+			{
+				var songText:FlxText = new FlxText(FlxG.width - 250, textBaseY + (i * textSpacing), 240, songs[i].songName, 24);
+				songText.setFormat(Paths.font(Language.get("game_font")), 24, FlxColor.WHITE, RIGHT);
+				songText.antialiasing = ClientPrefs.data.antialiasing;
+				grpSongs.add(songText);
+	
+				// 创建图标
+				var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
+				icon.x = FlxG.width - songText.width - 100; // 图标位于文本左侧
+				icon.y = songText.y + (songText.height / 2) - (icon.height / 2);
+				iconArray.push(icon);
+				add(icon);
+			}
 		WeekData.setDirectoryFromWeek();
 
 		scoreText = new FlxText(FlxG.width * 0.7, 5, 0, "", 32);
-		scoreText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, RIGHT);
+		scoreText.setFormat(Paths.font(Language.get("game_font")), 32, FlxColor.WHITE, RIGHT);
     // 调整原有分数显示位置避免重叠
     scoreText.x = FlxG.width * 0.6; // 从0.7改为0.6
 
@@ -150,7 +140,7 @@ private var dragOffsetY:Float = 0;
 		add(missingTextBG);
 		
 		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
-		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		missingText.setFormat(Paths.font(Language.get("game_font")), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		missingText.scrollFactor.set();
 		missingText.visible = false;
 		add(missingText);
@@ -161,16 +151,16 @@ private var dragOffsetY:Float = 0;
 		lerpSelected = curSelected;
 
 		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
-// 在 create() 中找到滚动条创建部分替换为：
-scrollBarBG = new FlxSprite(FlxG.width - 28, 50).makeGraphic(12, FlxG.height - 150, 0xFF444444);
-scrollBarBG.alpha = 0.6;
-add(scrollBarBG);
+		// 滚动条初始化
+		scrollBarBG = new FlxSprite(FlxG.width - 28, 50).makeGraphic(12, FlxG.height - 150, 0xFF444444);
+		scrollBarBG.alpha = 0.6;
+		add(scrollBarBG);
 
-scrollBarThumb = new FlxSprite(scrollBarBG.x, scrollBarBG.y).makeGraphic(12, 40, 0xFFFFFFFF);
-scrollBarThumb.alpha = 0.8;
-add(scrollBarThumb);
+		scrollBarThumb = new FlxSprite(scrollBarBG.x, scrollBarBG.y).makeGraphic(12, 40, 0xFFFFFFFF);
+		scrollBarThumb.alpha = 0.8;
+		add(scrollBarThumb);
 
-FlxG.mouse.visible = true; // 添加鼠标可见
+		FlxG.mouse.visible = true; // 添加鼠标可见
 		bottomBG = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
 		bottomBG.alpha = 0.6;
 		add(bottomBG);
@@ -179,11 +169,11 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 		bottomString = leText;
 		var size:Int = 16;
 		bottomText = new FlxText(bottomBG.x, bottomBG.y + 4, FlxG.width, leText, size);
-		bottomText.setFormat(Paths.font("vcr.ttf"), size, FlxColor.WHITE, CENTER);
+		bottomText.setFormat(Paths.font(Language.get("game_font")), size, FlxColor.WHITE, CENTER);
 		bottomText.scrollFactor.set();
 		add(bottomText);
 		
-		player = new MusicPlayer(this);
+		player = new MusicPlayerNew(this);
 		add(player);
 		
 		changeSelection();
@@ -199,7 +189,7 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 
 	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int)
 	{
-		songs.push(new SongMetadata(songName, weekNum, songCharacter, color));
+		songs.push(new SongMetadataNew(songName, weekNum, songCharacter, color));
 	}
 
 	function weekIsLocked(name:String):Bool {
@@ -294,6 +284,9 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 				_updateSongLastDifficulty();
 			}
 		}
+		// 文本位置更新
+		lerpSelected = FlxMath.lerp(curSelected, lerpSelected, Math.exp(-elapsed * 9.6));
+		updateTextPositions();
 
 		if (controls.BACK)
 		{
@@ -360,12 +353,11 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 				instPlaying = curSelected;
 
 				player.playingMusic = true;
-				player.curTime = 0;
-				player.switchPlayMusic();
+        		player.switchPlayMusic();
 			}
 			else if (instPlaying == curSelected && player.playingMusic)
 			{
-				player.pauseOrResume(player.paused);
+				player.togglePlayback(); // 修改这里			
 			}
 		}
 		else if (controls.ACCEPT && !player.playingMusic)
@@ -506,6 +498,43 @@ super.update(elapsed);
 		missingTextBG.visible = false;
 	}
 
+	function updateTextPositions()
+		{
+			for (i in 0...grpSongs.length)
+			{
+				var text = grpSongs.members[i];
+				var targetY = textBaseY + (i - lerpSelected) * textSpacing;
+				var lerpY = FlxMath.lerp(text.y, targetY, 0.4);
+				
+				// 计算透明度
+				var distance = Math.abs(i - lerpSelected);
+				var alpha = 1 - (distance * 0.2);
+				if(alpha < 0) alpha = 0;
+				
+				text.y = lerpY;
+				text.alpha = alpha;
+				
+				// 更新图标位置
+				var icon = iconArray[i];
+				icon.y = text.y + (text.height / 2) - (icon.height / 2);
+				icon.alpha = alpha;
+			}
+		}
+	
+		function updateScrollBar()
+		{
+			if (!isDraggingScrollBar)
+			{
+				var totalSongs:Int = songs.length;
+				var thumbHeight:Float = Math.max(20, Math.min(scrollBarBG.height * 0.5, scrollBarBG.height / totalSongs));
+				scrollBarThumb.makeGraphic(12, Math.floor(thumbHeight), 0xFFFFFFFF);
+				
+				var maxScroll:Float = scrollBarBG.height - thumbHeight;
+				var scrollPosition:Float = (lerpSelected / (totalSongs - 1)) * maxScroll;
+				scrollBarThumb.y = scrollBarBG.y + scrollPosition;
+			}
+		}
+
 	function changeSelection(change:Int = 0, playSound:Bool = true)
 	{
 		if (player.playingMusic)
@@ -538,7 +567,14 @@ super.update(elapsed);
 		// selector.y = (70 * curSelected) + 30;
 
 		var bullShit:Int = 0;
-
+		// 更新文本样式
+		for (i in 0...grpSongs.length)
+			{
+				var text = grpSongs.members[i];
+				text.color = (i == curSelected) ? FlxColor.YELLOW : FlxColor.WHITE;
+				text.setFormat(Paths.font(Language.get("game_font")), (i == curSelected) ? 32 : 24, text.color, RIGHT);
+			}
+		
 		for (i in 0...iconArray.length)
 		{
 			iconArray[i].alpha = 0.6;
@@ -546,13 +582,13 @@ super.update(elapsed);
 
 		iconArray[curSelected].alpha = 1;
 
-		for (item in grpSongs.members)
-		{
-			bullShit++;
-			item.alpha = 0.6;
-			if (item.targetY == curSelected)
-				item.alpha = 1;
-		}
+// 在changeSelection函数中修改：
+for (item in grpSongs.members)
+	{
+		item.alpha = 0.6;
+		if (grpSongs.members.indexOf(item) == curSelected) // 替换原targetY判断
+			item.alpha = 1;
+	}
 		
 		Mods.currentModDirectory = songs[curSelected].folder;
 		PlayState.storyWeek = songs[curSelected].week;
@@ -588,44 +624,27 @@ super.update(elapsed);
 
 	var _drawDistance:Int = 4;
 	var _lastVisibles:Array<Int> = [];
-	public function updateTexts(elapsed:Float = 0.0)
+// 修改updateTexts函数：
+function updateTexts(elapsed:Float = 0.0)
 	{
 		lerpSelected = FlxMath.lerp(curSelected, lerpSelected, Math.exp(-elapsed * 9.6));
-		for (i in _lastVisibles)
+		
+		for (i in 0...grpSongs.length)
 		{
-			grpSongs.members[i].visible = grpSongs.members[i].active = false;
-			iconArray[i].visible = iconArray[i].active = false;
-		}
-		_lastVisibles = [];
-
-		var min:Int = Math.round(Math.max(0, Math.min(songs.length, lerpSelected - _drawDistance)));
-		var max:Int = Math.round(Math.max(0, Math.min(songs.length, lerpSelected + _drawDistance)));
-		for (i in min...max)
-		{
-			var item:Alphabet = grpSongs.members[i];
-			item.visible = item.active = true;
-			item.x = ((item.targetY - lerpSelected) * item.distancePerItem.x) + item.startPosition.x;
-			item.y = ((item.targetY - lerpSelected) * 1.3 * item.distancePerItem.y) + item.startPosition.y;
-
-			var icon:HealthIcon = iconArray[i];
-			icon.visible = icon.active = true;
-			_lastVisibles.push(i);
-		}
-		var totalSongs:Int = songs.length;
-		if (totalSongs > 0 && !isDraggingScrollBar) { // 拖动时跳过自动更新
-			var thumbHeight:Float = Math.max(20, Math.min(scrollBarBG.height * 0.5, scrollBarBG.height / totalSongs));
-			scrollBarThumb.makeGraphic(12, Math.floor(thumbHeight), 0xFFFFFFFF);
+			var text = grpSongs.members[i];
+			var targetY = textBaseY + (i - lerpSelected) * textSpacing;
+			text.y = FlxMath.lerp(text.y, targetY, 0.4);
 			
-			var maxScroll:Float = scrollBarBG.height - thumbHeight;
-			var scrollPosition:Float = (lerpSelected / (totalSongs - 1)) * maxScroll;
+			var alpha = 1 - Math.abs(i - lerpSelected) * 0.3;
+			text.alpha = FlxMath.bound(alpha, 0.6, 1);
 			
-			if (Math.abs(scrollBarThumb.y - (scrollBarBG.y + scrollPosition)) > 1) {
-				FlxTween.cancelTweensOf(scrollBarThumb);
-				FlxTween.tween(scrollBarThumb, {y: scrollBarBG.y + scrollPosition}, 0.2, {ease: FlxEase.quadOut});
-			}
+			// 更新图标位置
+			var icon = iconArray[i];
+			icon.y = text.y + (text.height / 2) - (icon.height / 2);
+			icon.alpha = text.alpha;
 		}
-	
 	}
+
 
 	override function destroy():Void
 	{
@@ -637,7 +656,7 @@ super.update(elapsed);
 	}	
 }
 
-class SongMetadata
+class SongMetadataNew
 {
 	public var songName:String = "";
 	public var week:Int = 0;

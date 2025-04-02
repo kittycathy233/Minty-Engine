@@ -101,6 +101,11 @@ class PlayState extends MusicBeatState
 	var iconP1InitialY:Float;
 	var iconP2InitialY:Float;
 	var botCheck:Bool = false; // 默认血条范围是0-2
+	var totalEvents:Int = 0; // 添加在类变量区
+	var eventAlerts:Array<FlxText> = [];
+	var debugTexts:FlxTypedGroup<FlxText>;
+	var chartingInfo:FlxText;
+	var fpsVarInitialX:Float = 10;
 
 	var displayedHealth:Float = 1;
 	var healthLerp:Float = 1; // 用于平滑过渡
@@ -322,6 +327,12 @@ class PlayState extends MusicBeatState
 	{
 		//trace('Playback Rate: ' + playbackRate);
 		Paths.clearStoredMemory();
+
+		// 移动 fpsVar 向右 150px
+        if(chartingMode) moveFPSVarToChartingMode(); else resetFPSVarPosition();
+		FlxTween.tween(Main.fpsVar, {y: 3}, 1, {
+			ease: FlxEase.circOut
+		});
 
 		startCallback = startCountdown;
 		endCallback = endSong;
@@ -714,8 +725,38 @@ class PlayState extends MusicBeatState
 		cacheCountdown();
 		cachePopUpScore();
 
+		if (chartingMode) {
+			// 调试信息初始化
+			debugTexts = new FlxTypedGroup<FlxText>();
+			debugTexts.cameras = [camOther];
+			add(debugTexts);
+		
+			var baseY = 50;
+			var labels = ["Step: ", "Beat: ", "Section: "];
+			for (i in 0...3) {
+				var text = new FlxText(-300, baseY + (i * 30), 0, labels[i], 16);
+				text.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+				text.borderSize = 2;
+				debugTexts.add(text);
+				
+				FlxTween.tween(text, {x: 20}, 0.5, {
+					ease: FlxEase.backOut,
+					startDelay: i * 0.05
+				});
+			}
+		
+			// 事件统计信息
+			chartingInfo = new FlxText(20, 140, 0, "GAME Events Left: " + totalEvents, 14);
+			chartingInfo.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			chartingInfo.borderSize = 1;
+			chartingInfo.cameras = [camOther];
+			add(chartingInfo);
+		}
+
 		super.create();
-		Paths.clearUnusedMemory();
+        // 保存 fpsVar 的初始位置
+        if (Main.fpsVar != null)
+            fpsVarInitialX = Main.fpsVar.x;		Paths.clearUnusedMemory();
 
 		if(eventNotes.length < 1) checkEventNote();
 	}
@@ -1205,23 +1246,13 @@ class PlayState extends MusicBeatState
 		}
 		var tempScore:String = '';
 
-		if (cpuControlled) {
-			tempScore = 'Score: ${botScore}'
-			+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
-			+ ' | Rating: ${str}'
-			+ ' | BOTPLAY';
-			// "tempScore" variable is used to prevent another memory leak, just in case
-			// "\n" here prevents the text from being cut off by beat zooms
-			scoreTxt.text = '${tempScore}\n';
-		}
-		else {
 		tempScore = 'Score: ${songScore}'
 		+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
-		+ ' | Rating: ${str}';
+		+ ' | Rating: ${str}'
+		+ (cpuControlled ? ' | AUTOPLAY' : "");
 		// "tempScore" variable is used to prevent another memory leak, just in case
 		// "\n" here prevents the text from being cut off by beat zooms
 		scoreTxt.text = '${tempScore}\n';
-		}
 
 		if (!miss)
 			doScoreBop();
@@ -1341,6 +1372,8 @@ class PlayState extends MusicBeatState
 	private var eventsPushed:Array<String> = [];
 	private function generateSong(dataPath:String):Void
 	{
+		// 在加载事件之后
+		totalEvents = eventNotes.length; // 记录总事件数
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
@@ -1956,7 +1989,7 @@ class PlayState extends MusicBeatState
 				case "Kade":
 					speedMultiplier = 27;
 				case "Leather":
-					speedMultiplier = 7;
+					speedMultiplier = 5;
 				default:
 					speedMultiplier = 9;
 			}
@@ -2066,6 +2099,9 @@ function updateHealthBar() {
 		DiscordClient.resetClientID();
 		#end
 
+		FlxTween.tween(Main.fpsVar, {y: 50}, 1, {
+			ease: FlxEase.circOut
+		});
 		MusicBeatState.switchState(new ChartingState());
 	}
 
@@ -2126,29 +2162,29 @@ function updateHealthBar() {
 			if(Conductor.songPosition < leStrumTime) {
 				return;
 			}
-
+	
 			var value1:String = '';
 			if(eventNotes[0].value1 != null)
 				value1 = eventNotes[0].value1;
-
+	
 			var value2:String = '';
 			if(eventNotes[0].value2 != null)
 				value2 = eventNotes[0].value2;
-
+	
 			var value3:String = '';
 			if(eventNotes[0].value3 != null)
 				value3 = eventNotes[0].value3;
-
+	
 			var value4:String = '';
 			if(eventNotes[0].value4 != null)
 				value4 = eventNotes[0].value4;
-
-			triggerEvent(eventNotes[0].event, value1, value2, value3, value4, leStrumTime);
+	
+			triggerEvent(eventNotes[0].event, value1, value2, value3, value4, leStrumTime, false); // false表示这是来自PlayState的事件
 			eventNotes.shift();
 		}
 	}
 
-	public function triggerEvent(eventName:String, value1:String, value2:String, value3:String, value4:String, strumTime:Float) {
+	public function triggerEvent(eventName:String, value1:String, value2:String, value3:String, value4:String, strumTime:Float, ?isLuaEvent:Bool = false) {
 		var flValue1:Null<Float> = Std.parseFloat(value1);
 		var flValue2:Null<Float> = Std.parseFloat(value2);
 		var flValue3:Null<Float> = Std.parseFloat(value3);
@@ -2157,6 +2193,33 @@ function updateHealthBar() {
 		if(Math.isNaN(flValue2)) flValue2 = null;
 		if(Math.isNaN(flValue3)) flValue3 = null;
 		if(Math.isNaN(flValue4)) flValue4 = null;
+	
+		if (chartingMode) {
+			var eventText = new FlxText(20, chartingInfo.y + chartingInfo.height + 20 + (eventAlerts.length * 30), FlxG.width - 40, 
+			'${isLuaEvent ? 'SCRIPT ' : 'GAME '}Event: ${eventName}\nInsert Value: ${value1}, ${value2}, ${value3}, ${value4}', 14);
+			eventText.setFormat(Paths.font("vcr.ttf"), 16, isLuaEvent ? FlxColor.ORANGE : FlxColor.CYAN, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			eventText.borderSize = 2;
+			eventText.cameras = [camOther];
+			add(eventText);
+			eventAlerts.push(eventText);
+	
+			// 淡出效果
+			FlxTween.tween(eventText, {alpha: 0}, 1, {
+				startDelay: 1.5,
+				onComplete: function(twn:FlxTween) {
+					remove(eventText);
+					eventText.destroy();
+					eventAlerts.remove(eventText);
+					// 更新剩余提示的位置
+					for (i in 0...eventAlerts.length) {
+						FlxTween.tween(eventAlerts[i], {y: chartingInfo.y + chartingInfo.height + 50 + (i * 45)}, 0.15);
+					}
+				}
+			});	
+
+			// 更新chartingInfo
+			chartingInfo.text = 'GAME Events Left: ${eventNotes.length}';
+		}
 
 		switch(eventName) {
 			case 'Hey!':
@@ -2511,6 +2574,7 @@ function updateHealthBar() {
 		deathCounter = 0;
 		seenCutscene = false;
 
+		resetFPSVarPosition();
 		Application.current.window.title = 'Friday Night Funkin\': MintRhythm Engine';
 
 		#if ACHIEVEMENTS_ALLOWED
@@ -2531,6 +2595,7 @@ function updateHealthBar() {
 			if (chartingMode)
 			{
 				openChartEditor();
+				resetFPSVarPosition();
 				return false;
 			}
 
@@ -3358,6 +3423,12 @@ function updateHealthBar() {
 
 		super.stepHit();
 
+		if (chartingMode && debugTexts != null) {
+			var texts = debugTexts.members;
+			texts[0].text = "Step: " + curStep;
+			texts[1].text = "Beat: " + curBeat;
+			texts[2].text = "Section: " + curSection;
+		}
 		if(curStep == lastStepHit) {
 			return;
 		}
@@ -3386,8 +3457,8 @@ function updateHealthBar() {
 					iconP2.scale.set(1.4, 1.4);
 					}
 				else if (ClientPrefs.data.iconbopstyle == "Leather") {
-					iconP1.scale.set(1.3, 1.3);
-					iconP2.scale.set(1.3, 1.3);
+					iconP1.scale.set(1.25, 1.25);
+					iconP2.scale.set(1.25, 1.25);
 					}
 	
 				else {
@@ -3754,6 +3825,28 @@ function updateHealthBar() {
 		setOnScripts('ratingName', ratingName);
 		setOnScripts('ratingFC', ratingFC);
 	}
+
+	// 移动 fpsVar 到 chartingMode 位置
+    public function moveFPSVarToChartingMode()
+		{
+			if (Main.fpsVar != null)
+			{
+				FlxTween.tween(Main.fpsVar, {x: Main.fpsVar.x + 150}, 1, {
+					ease: FlxEase.circOut
+				});
+			}
+		}
+	
+		// 恢复 fpsVar 到默认位置
+		public function resetFPSVarPosition()
+		{
+			if (Main.fpsVar != null)
+			{
+				FlxTween.tween(Main.fpsVar, {x: fpsVarInitialX}, 1, {
+					ease: FlxEase.circOut
+				});
+			}
+		}
 
 	#if ACHIEVEMENTS_ALLOWED
 	private function checkForAchievement(achievesToCheck:Array<String> = null)

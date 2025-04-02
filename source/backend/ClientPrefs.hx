@@ -109,7 +109,8 @@ import states.TitleState;
 
 	public var smoothHP:Bool = true;
 	public var forceSingleSplashAnim:Bool = false;
-
+	// 在ClientPrefs.hx的Settings类中添加
+	public var volumeTheme:String = "Archive"; // vanila, psych, archive
 }
 
 class ClientPrefs {

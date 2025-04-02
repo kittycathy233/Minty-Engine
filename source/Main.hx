@@ -132,6 +132,7 @@ Lib.current.stage.quality = openfl.display.StageQuality.HIGH;
 		#if !mobile
 		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);
 		addChild(fpsVar);
+		fpsVar.x = 10;
 		Lib.current.stage.align = "tl";
 		Lib.current.stage.scaleMode = StageScaleMode.NO_SCALE;
 		if(fpsVar != null) {

@@ -797,7 +797,8 @@ class FunkinLua {
 			var value2:String = arg2;
 			var value3:String = arg3;
 			var value4:String = arg4;
-			game.triggerEvent(name, value1, value2, value3, value4, Conductor.songPosition);
+			//game.triggerEvent(name, value1, value2, value3, value4, Conductor.songPosition);
+			game.triggerEvent(name, arg1, arg2, arg3, arg4, Conductor.songPosition, true); // 最后的true表示这是来自FunkinLua的事件
 			//trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2, ' + value3 + ', ' + value4);
 			return true;
 		});

@@ -85,10 +85,10 @@ class LoadingState extends MusicBeatState
 		{
 			var library = Assets.getLibrary("songs");
 			final symbolPath = path.split(":").pop();
-			// @:privateAccess
-			// library.types.set(symbolPath, SOUND);
-			// @:privateAccess
-			// library.pathGroups.set(symbolPath, [library.__cacheBreak(symbolPath)]);
+			 @:privateAccess
+			 library.types.set(symbolPath, SOUND);
+			 @:privateAccess
+			 library.pathGroups.set(symbolPath, [library.__cacheBreak(symbolPath)]);
 			var callback = callbacks.add("song:" + path);
 			Assets.loadSound(path).onComplete(function (_) { callback(); });
 		}
@@ -125,13 +125,15 @@ class LoadingState extends MusicBeatState
 	}
 	
 	function onLoad()
-	{
-		if (stopMusic && FlxG.sound.music != null)
-			FlxG.sound.music.stop();
-		
-		MusicBeatState.switchState(target);
-	}
-	
+		{
+			if (stopMusic && FlxG.sound.music != null)
+				FlxG.sound.music.stop();
+			
+			// 添加1秒延迟后再切换状态
+			new FlxTimer().start(1.0, function(tmr:FlxTimer) {
+				MusicBeatState.switchState(target);
+			});
+		}	
 	static function getSongPath()
 	{
 		return Paths.inst(PlayState.SONG.song);

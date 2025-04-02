@@ -114,6 +114,14 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
+		var option:Option = new Option('Volume Style',
+		//Language.get("loading_style_desc"),
+		'（施工中）更改音量条主题',
+		'volumeTheme',
+		'string',
+		['Vanilla', 'Psych', 'Archive']);
+		addOption(option);
+
 		var option = new Option(
             "Engine Language",
 			Language.get("change_language_desc"),

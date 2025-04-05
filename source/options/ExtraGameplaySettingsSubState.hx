@@ -67,7 +67,7 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		Language.get("iconbop_style_desc"),
 		'iconbopstyle',
 		'string',
-		['Psych', 'OS', 'MintRhythm', 'Kade', 'Leather', 'NONE']);
+		['Psych', 'OS', 'MintRhythm', 'Kade', 'Leather', 'SB', 'NONE']);
 		addOption(option);
 
 		var option:Option = new Option('ScoreTxt Style',
@@ -121,6 +121,26 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'string',
 		['Vanilla', 'Psych', 'Archive']);
 		addOption(option);
+
+		var option:Option = new Option('CPU Strums',
+		Language.get("cpu_strums_desc"),
+		'cpuStrums',
+		'bool');
+		addOption(option);
+
+		var option:Option = new Option('BotPlayTxt Style',
+		Language.get("botplaytxt_style_desc"),
+		'botplayStyle',
+		'string',
+		['Kade', 'Psych']);
+		addOption(option);
+		var option:Option = new Option('ShowCase Style',
+		Language.get("showcase_style_desc"),
+		'showcaseStyle',
+		'string',
+		['Kade', 'Psych']);
+		addOption(option);
+
 
 		var option = new Option(
             "Engine Language",

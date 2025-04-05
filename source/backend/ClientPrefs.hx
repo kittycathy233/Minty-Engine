@@ -111,6 +111,11 @@ import states.TitleState;
 	public var forceSingleSplashAnim:Bool = false;
 	// 在ClientPrefs.hx的Settings类中添加
 	public var volumeTheme:String = "Archive"; // vanila, psych, archive
+	public var cpuStrums: Bool = true;
+	public var tabiBar: Bool = true;
+	public var botplayStyle:String = "Kade"; // vanila, psych, archive
+	public var showcaseStyle:String = "Kade";
+	
 }
 
 class ClientPrefs {

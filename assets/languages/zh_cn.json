@@ -17,5 +17,6 @@
     "game_font": "SourceHanSansCN-Bold.otf",
     "smooth_hpbar_desc": "使血条看起来更丝滑",
     "musicplayer_desc": "设置音乐播放器的样式",
-    "musicplayer_text": "SPACE:暂停/播放 | ←/→:快退/快进 | R:重置速度 | CTRL:返回"
+    "musicplayer_text": "SPACE:暂停/播放 | ←/→:快退/快进 | R:重置速度 | CTRL:返回",
+    "showcase_style_desc": "（施工中）\n设置展示模式下的样式"
 }

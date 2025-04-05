@@ -119,7 +119,20 @@ class PlayState extends MusicBeatState
 	public var botScore:Int = 0;
 	public var botNotesMs:Float = 0;
 
-	public var ratingStuff:Array<Dynamic> = ClientPrefs.data.scoretxtstyle == "Kade" ?
+	public var ratingStuff:Array<Dynamic> = 
+    [
+        ['You Suck!', 0.2], //From 0% to 19%
+        ['Shit', 0.4], //From 20% to 39%
+        ['Bad', 0.5], //From 40% to 49%
+        ['Bruh', 0.6], //From 50% to 59%
+        ['Meh', 0.69], //From 60% to 68%
+        ['Nice', 0.7], //69%
+        ['Good', 0.8], //From 70% to 79%
+        ['Great', 0.9], //From 80% to 89%
+        ['Sick!', 1], //From 90% to 99%
+        ['Perfect!!', 1] //The value on this one isn't used actually, since Perfect is always "1"
+    ];	
+	public var ratingStuffKE:Array<Dynamic> = 
     [
 		["D", 0.6], // accuracy < 60
 		["C", 0.7], // accuracy >= 60
@@ -138,19 +151,7 @@ class PlayState extends MusicBeatState
 		["AAAA:", 0.999935], // accuracy >= 99.980
 		["AAAAA", 1], // accuracy >= 99.9935
 		["AAAAA", 1], // accuracy >= 99.9935    
-		] :
-    [
-        ['You Suck!', 0.2], //From 0% to 19%
-        ['Shit', 0.4], //From 20% to 39%
-        ['Bad', 0.5], //From 40% to 49%
-        ['Bruh', 0.6], //From 50% to 59%
-        ['Meh', 0.69], //From 60% to 68%
-        ['Nice', 0.7], //69%
-        ['Good', 0.8], //From 70% to 79%
-        ['Great', 0.9], //From 80% to 89%
-        ['Sick!', 1], //From 90% to 99%
-        ['Perfect!!', 1] //The value on this one isn't used actually, since Perfect is always "1"
-    ];	
+		];	
 
 	//event variables
 	private var isCameraOnForcedPos:Bool = false;
@@ -628,30 +629,42 @@ class PlayState extends MusicBeatState
 		uiGroup.add(iconP2);
 		iconP2InitialY = iconP2.y; // 保存初始Y坐标
 
-		scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
+	if(ClientPrefs.data.scoretxtstyle == 'Kade') 
+	{
+	scoreTxt = new FlxText(0, healthBar.y + 50, FlxG.width, "", 20);
+	scoreTxt.screenCenter(X);
+	scoreTxt.scrollFactor.set();
+	scoreTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+	scoreTxt.visible = !ClientPrefs.data.hideHud;
+}
+		
+		else {
+			scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
 		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = !ClientPrefs.data.hideHud;
+	}
 		updateScore(false);
 		uiGroup.add(scoreTxt);
 
-		botplayTxt = new FlxText(400, timeBar.y + 55, FlxG.width - 800, "AUTO PLAY", 32);
-		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		botplayTxt = new FlxText(400, ClientPrefs.data.botplayStyle == 'Kade' ? healthBar.y - 120 : timeBar.y + 55, FlxG.width - 800, ClientPrefs.data.botplayStyle == 'Kade' ? "BOTPLAY" : 'AUTOPLAY', 32);
+		botplayTxt.setFormat(Paths.font("vcr.ttf"), ClientPrefs.data.botplayStyle == 'Kade' ? 37 : 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
-		botplayTxt.borderSize = 1.25;
+		botplayTxt.borderSize = ClientPrefs.data.botplayStyle == 'Kade' ? 2 : 1.25;
 		botplayTxt.visible = cpuControlled;
 		uiGroup.add(botplayTxt);
 		if(ClientPrefs.data.downScroll)
-			botplayTxt.y = timeBar.y - 78;
+			botplayTxt.y = ClientPrefs.data.botplayStyle == 'Kade' ? healthBar.y + 120 : timeBar.y - 78;
 
 		// 添加水印文本
-		var watermarkText = new FlxText(10, FlxG.height - 20, 0, 
+		var watermarkText = new FlxText(20, FlxG.height - 20, 0, 
     	SONG.song + "-" + storyDifficultyText + ' | MintRhythm Engine v${MainMenuState.mintrhythmEngineVersion}', 
-    		16);
+    		14);
 		watermarkText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		watermarkText.scrollFactor.set();
-		watermarkText.borderSize = 1.25;
+		watermarkText.borderSize = 1.2;
+		watermarkText.alpha = 0.8;
 		watermarkText.visible = !ClientPrefs.data.hideHud;
 		uiGroup.add(watermarkText);
 
@@ -1234,32 +1247,61 @@ class PlayState extends MusicBeatState
 	// cool right? -Crow
 	public dynamic function updateScore(miss:Bool = false)
 	{
-		var ret:Dynamic = callOnScripts('preUpdateScore', [miss], true);
-		if (ret == LuaUtils.Function_Stop)
-			return;
-
-		var str:String = ratingName;
-		if(totalPlayed != 0 || botHits != 0)
-		{
-		var percent:Float = CoolUtil.floorDecimal( (cpuControlled ? botRatingPercent : ratingPercent) * 100, 2);
-				str += ' (${percent}%) - ${ratingFC}';
-		}
-		var tempScore:String = '';
-
-		tempScore = 'Score: ${songScore}'
-		+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
-		+ ' | Rating: ${str}'
-		+ (cpuControlled ? ' | AUTOPLAY' : "");
-		// "tempScore" variable is used to prevent another memory leak, just in case
-		// "\n" here prevents the text from being cut off by beat zooms
-		scoreTxt.text = '${tempScore}\n';
-
+		updateScoreText();
 		if (!miss)
 			doScoreBop();
-
-		callOnScripts('onUpdateScore', [miss]);
 	}
+	public function updateScoreText(miss:Bool = false)
+		{
+			var ret:Dynamic = callOnScripts('preUpdateScore', [miss], true);
+			if (ret == LuaUtils.Function_Stop)
+				return;
+	
+			var str:String = ratingName;
+			var percent:Float = CoolUtil.floorDecimal(100, 2);
+			if(totalPlayed != 0 || botHits != 0)
+			{
+				percent = CoolUtil.floorDecimal( (cpuControlled ? botRatingPercent : ratingPercent) * 100, 2);
+				str += ' (${percent}%) - ${ratingFC}';
+			}
+			var tempScore:String = '';
+	
+			if (ClientPrefs.data.scoretxtstyle == 'MintRhythm')
+			{	
+				if (ClientPrefs.data.showcaseStyle == 'Kade')
+					tempScore = 'NPS: ${nps} | Score: ${songScore}'
+				+ (!instakillOnMiss ? ' | Miss: ${songMisses}' : "")
+				+ ' | Acc: ${percent}% | ${ratingFC}'
+				+ (cpuControlled ? ' | AUTOPLAY' : "");
 
+				else tempScore = 'NPS: ${nps} | Score: ${songScore}';
+				// "tempScore" variable is used to prevent another memory leak, just in case
+				// "\n" here prevents the text from being cut off by beat zooms
+			}
+			else if (ClientPrefs.data.scoretxtstyle == 'Kade')
+			{	
+				//这里还没改完
+				if(cpuControlled) tempScore = 'NPS: ${nps} | Score: ${songScore}';
+				else
+				tempScore = 'NPS: ${nps} | Score: ${songScore}'
+				+ (!instakillOnMiss ? ' | Combo Breaks: ${songMisses}' : "")
+				+ ' | Accuracy: ${percent}% | (${ratingFC}) ${ratingNameKE}'
+				+ (cpuControlled ? ' | AUTOPLAY' : "");
+				// "tempScore" variable is used to prevent another memory leak, just in case
+				// "\n" here prevents the text from being cut off by beat zooms
+			}
+			else {
+				tempScore = 'Score: ${songScore}'
+			+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
+			+ ' | Rating: ${str}'
+			+ (cpuControlled ? ' | BOTPLAY' : "");
+			// "tempScore" variable is used to prevent another memory leak, just in case
+			// "\n" here prevents the text from being cut off by beat zooms
+	}
+		scoreTxt.text = '${tempScore}\n';
+		callOnScripts('onUpdateScore', [miss]);
+		}
+	
 	public dynamic function fullComboFunction()
 	{
 		var sicks:Int = ratingsData[0].hits;
@@ -1268,13 +1310,14 @@ class PlayState extends MusicBeatState
 		var shits:Int = ratingsData[3].hits;
         var perfects:Int = !ClientPrefs.data.rmperfect ? ratingsData[4].hits : 0;    
 
-		ratingFC = "";
+		ratingFC = ClientPrefs.data.scoretxtstyle == 'Psych' ? "?" : "";
 		if(songMisses == 0)
 		{
 			if (bads > 0 || shits > 0) ratingFC = 'FC';
 			else if (goods > 0) ratingFC = 'GFC';
 			else if (sicks > 0) ratingFC = 'SFC';
 			else if (perfects > 0) ratingFC = 'PFC';
+			
 		}
 		else {
 			if (songMisses < 10) ratingFC = 'SDCB';
@@ -1285,6 +1328,8 @@ class PlayState extends MusicBeatState
 	public function doScoreBop():Void {
 		if(!ClientPrefs.data.scoreZoom)
 			return;
+		if(ClientPrefs.data.scoretxtstyle == 'Kade')
+		{}//还没想好
 
 		if(scoreTxtTween != null)
 			scoreTxtTween.cancel();
@@ -1782,6 +1827,24 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		{
+			var balls = notesHitArray.length - 1;
+			while (balls >= 0)
+			{
+				var cock:Date = notesHitArray[balls];
+				if (cock != null && cock.getTime() + 1000 < Date.now().getTime())
+					notesHitArray.remove(cock);
+				else
+					balls = 0;
+				balls--;
+			}
+			nps = notesHitArray.length;
+			if (nps > maxNPS)
+				maxNPS = nps;
+			if (npsCheck != nps)
+				updateScoreText();
+		}
+
 		if(!inCutscene && !paused && !freezeCamera) {
 			FlxG.camera.followLerp = 2.4 * cameraSpeed * playbackRate;
 			if(!startingSong && !endingSong && boyfriend.getAnimationName().startsWith('idle')) {
@@ -1801,10 +1864,10 @@ class PlayState extends MusicBeatState
 		setOnScripts('curDecStep', curDecStep);
 		setOnScripts('curDecBeat', curDecBeat);
 
-		if(botplayTxt != null && botplayTxt.visible) {
+		if(botplayTxt != null && botplayTxt.visible && ClientPrefs.data.botplayStyle != 'Kade') {
 			botplaySine += 180 * elapsed;
 			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
-		}
+		} else botplayTxt.alpha = 1;
 
 		if (controls.PAUSE && startedCountdown && canPause)
 		{
@@ -1990,6 +2053,8 @@ class PlayState extends MusicBeatState
 					speedMultiplier = 27;
 				case "Leather":
 					speedMultiplier = 5;
+				case "SB":
+					speedMultiplier = 20;
 				default:
 					speedMultiplier = 9;
 			}
@@ -2753,7 +2818,7 @@ function updateHealthBar() {
 		note.rating = daRating.name;
 		score = daRating.score;
 
-		if(daRating.noteSplash && !note.noteSplashData.disabled)
+		if(daRating.noteSplash && !note.noteSplashData.disabled && ClientPrefs.data.cpuStrums)
 			spawnNoteSplashOnNote(note);
 
 		if(cpuControlled) {
@@ -2856,6 +2921,16 @@ function updateHealthBar() {
 			comboSpr.alpha = ratingAlpha;
 			}
 
+			if (ClientPrefs.data.showcaseStyle == 'Kade')
+			{
+				if (cpuControlled)
+				rating.alpha = 0;
+				theEXrating.alpha = 0;
+				comboSpr.alpha = 0;
+			}
+
+
+
 		if (ClientPrefs.data.exratingDisplay) comboGroup.add(theEXrating);
 		comboGroup.add(rating);
 
@@ -2894,14 +2969,38 @@ function updateHealthBar() {
 			numScore.visible = !ClientPrefs.data.hideHud;
 			numScore.antialiasing = antialias;
 
-			if (ratingAlpha != 1)
+			if (ClientPrefs.data.showcaseStyle != 'Kade') 
 				{
-				numScore.alpha = ratingAlpha;
+					// 非 Kade 风格的原有逻辑
+					if (ratingAlpha != 1) {
+						numScore.alpha = ratingAlpha; // 动态透明度
+					}
+					if (showComboNum) {
+						comboGroup.add(numScore);      // 无条件显示连击数
+					}
+				} 
+				else 
+				{
+					// Kade 风格逻辑
+					if (cpuControlled) 
+					{
+						// 启用 CPU 控制时：强制不透明，且无视连击数检测（划）
+						numScore.alpha = 1; // 固定不透明
+						if (combo >= 10 && showComboNum) {
+							comboGroup.add(numScore); // 直接显示
+						}
+					} 
+					else 
+					{
+						// 未启用 CPU 控制时：保留连击数检测逻辑，但继承非 Kade 的透明度规则
+						if (ratingAlpha != 1) {
+							numScore.alpha = ratingAlpha; // 动态透明度
+						}
+						if (combo >= 10 && showComboNum) {
+							comboGroup.add(numScore);     // 连击≥10 时显示
+						}
+					}
 				}
-	
-			//if (combo >= 10 || combo == 0)
-			if(showComboNum)
-				comboGroup.add(numScore);
 
 			FlxTween.tween(numScore, {alpha: 0}, 0.2 / playbackRate, {
 				onComplete: function(tween:FlxTween)
@@ -3298,7 +3397,7 @@ function updateHealthBar() {
 			}
 
 			noteMiss(note);
-			if(!note.noteSplashData.disabled && !note.isSustainNote) spawnNoteSplashOnNote(note);
+			if(!note.noteSplashData.disabled && !note.isSustainNote && ClientPrefs.data.cpuStrums) spawnNoteSplashOnNote(note);
 			if(!note.isSustainNote) invalidateNote(note);
 			return;
 		}
@@ -3341,6 +3440,7 @@ function updateHealthBar() {
 		{
 			combo++;
 			if(combo > 9999) combo = 9999;
+			notesHitArray.unshift(Date.now());
 			popUpScore(note);
 		}
 		var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
@@ -3466,6 +3566,7 @@ function updateHealthBar() {
 			iconP2.scale.set(1.2, 1.2);
 				}
 			}
+
 			dancingLeft = !dancingLeft;
 	
 			if (ClientPrefs.data.iconbopstyle == "OS") {
@@ -3474,11 +3575,16 @@ function updateHealthBar() {
 				} else { 
 					iconP1.angle = -8; iconP2.angle = -8;
 				}
-			}
-			else if (ClientPrefs.data.iconbopstyle == "MintRhythm") {
+			} else 	if (ClientPrefs.data.iconbopstyle == "SB") {
+				if (dancingLeft){
+					iconP1.angle = -15; iconP2.angle = 15; // maybe i should do it with tweens, but i'm lazy // i'll make it in -1.0.0, i promise
+				} else { 
+					iconP1.angle = 15; iconP2.angle = -15;
+				}
+			} else if (ClientPrefs.data.iconbopstyle == "MintRhythm") {
 				if (curBeat%4 == 0) {
-					iconP1.angle = -25;
-					iconP2.angle = 25;
+					iconP1.angle = -22;
+					iconP2.angle = 22;
 	
 					FlxTween.tween(iconP1, {angle: 0}, 0.3, {ease: FlxEase.circOut});
 					FlxTween.tween(iconP2, {angle: 0}, 0.3, {ease: FlxEase.circOut});
@@ -3778,13 +3884,14 @@ function updateHealthBar() {
 			spr = playerStrums.members[id];
 		}
 
-		if(spr != null) {
+		if(spr != null && ClientPrefs.data.cpuStrums) {
 			spr.playAnim('confirm', true);
 			spr.resetAnim = time;
 		}
 	}
 
 	public var ratingName:String = '?';
+	public var ratingNameKE:String = 'AAAAA';
 	public var ratingPercent:Float;
 	public var botRatingPercent:Float;
 	public var ratingFC:String;
@@ -3817,6 +3924,15 @@ function updateHealthBar() {
 							ratingName = ratingStuff[i][0];
 							break;
 						}
+				ratingNameKE = ratingStuffKE[ratingStuffKE.length-1][0]; //Uses last string
+				if(ratingPercent < 1)
+					for (i in 0...ratingStuffKE.length-1)
+						if(ratingPercent < ratingStuffKE[i][1])
+						{
+							ratingNameKE = ratingStuffKE[i][0];
+							break;
+						}
+		
 			}
 			fullComboFunction();
 		}

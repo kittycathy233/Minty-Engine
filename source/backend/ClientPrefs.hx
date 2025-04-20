@@ -115,6 +115,8 @@ import states.TitleState;
 	public var tabiBar: Bool = true;
 	public var botplayStyle:String = "Kade"; // vanila, psych, archive
 	public var showcaseStyle:String = "Kade";
+	public var fpstxtStyle:String = "Kade";
+	public var timebarStyle:String = "Kade";
 	
 }
 

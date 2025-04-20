@@ -93,7 +93,7 @@ class PlayState extends MusicBeatState
 	var msTimeTxt:FlxText;
 	var msTimeTxtTween1:FlxTween;
 	var msTimeTxtTween2:FlxTween;
-	//var scoreTxtTweenAngle:FlxTween;
+	var scoreTxtTweenAngle:FlxTween;
 	var dancingLeft:Bool = false;
 	var ratingexspr:String = '';
 	var exratingexspr:String = '-extra';
@@ -107,9 +107,11 @@ class PlayState extends MusicBeatState
 	var chartingInfo:FlxText;
 	var fpsVarInitialX:Float = 10;
 
-	var displayedHealth:Float = 1;
-	var healthLerp:Float = 1; // 用于平滑过渡
-	var maxHealth:Float = 2; // 默认血条范围是0-2
+// 在类变量区添加
+var displayedHealth:Float = 1; // 用于显示的血量
+var healthLerp:Float = 1; // 用于平滑过渡的血量
+var maxHealth:Float = 2; // 默认血条最大值
+var iconsAnimations:Bool = true; // 控制图标动画的开关
 
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
@@ -542,12 +544,12 @@ class PlayState extends MusicBeatState
 		timeTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		timeTxt.scrollFactor.set();
 		timeTxt.alpha = 0;
-		timeTxt.borderSize = 2;
 		timeTxt.visible = updateTime = showTime;
 		if(ClientPrefs.data.downScroll) timeTxt.y = FlxG.height - 44;
 		if(ClientPrefs.data.timeBarType == 'Song Name') timeTxt.text = SONG.song;
-
-		timeBar = new Bar(0, timeTxt.y + (timeTxt.height / 4), 'timeBar', function() return songPercent, 0, 1);
+		if(ClientPrefs.data.timebarStyle != 'Kade') timeTxt.borderSize = 2;
+		
+		timeBar = new Bar(0, timeTxt.y + (timeTxt.height / 4), ClientPrefs.data.timebarStyle == "Kade" ? 'timeBarKE' : 'timeBar', function() return songPercent, 0, 1);
 		timeBar.scrollFactor.set();
 		timeBar.screenCenter(X);
 		timeBar.alpha = 0;
@@ -559,10 +561,15 @@ class PlayState extends MusicBeatState
 		noteGroup.add(strumLineNotes);
 
 		if(ClientPrefs.data.timeBarType == 'Song Name')
-		{
-			timeTxt.size = 24;
-			timeTxt.y += 3;
-		}
+			{
+				timeTxt.size = 24;
+				timeTxt.y += ClientPrefs.data.timebarStyle == 'Kade' ? 0 : 3;
+			}		
+		if(ClientPrefs.data.timebarStyle == 'Kade')
+			{
+				timeTxt.size = 16;
+				timeTxt.y += 8;
+			}
 
 		var splash:NoteSplash = new NoteSplash(100, 100);
 		grpNoteSplashes.add(splash);
@@ -602,6 +609,19 @@ class PlayState extends MusicBeatState
 		healthBar.alpha = ClientPrefs.data.healthBarAlpha;
 		reloadHealthBarColors();
 		uiGroup.add(healthBar);
+
+		if (ClientPrefs.data.timebarStyle == "Kade") {
+		/*	// 设置时间条长度与血条相同
+			timeBar.width = healthBar.width;
+			// 设置时间条颜色为左绿右灰*/
+			timeBar.setColors(0x00FF80, 0xBBBBBB); // 绿色和灰色
+			// 移除渐变效果
+			//timeBar.fill = 0;
+		} else {
+			// 其他样式保持默认
+			timeBar.setColors(0x000000, 0xFFFFFF); // 黑色和白色
+			//timeBar.fill = 0x808080; // 灰色渐变
+		}
 
 		msTimeTxt = new FlxText(0, 0, 200, "", 32);
 		msTimeTxt.setFormat(Paths.font('vcr.ttf'), 23, 0xFF87CEEB, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -738,7 +758,7 @@ class PlayState extends MusicBeatState
 		cacheCountdown();
 		cachePopUpScore();
 
-		if (chartingMode) {
+		/*if (chartingMode) {
 			// 调试信息初始化
 			debugTexts = new FlxTypedGroup<FlxText>();
 			debugTexts.cameras = [camOther];
@@ -764,7 +784,7 @@ class PlayState extends MusicBeatState
 			chartingInfo.borderSize = 1;
 			chartingInfo.cameras = [camOther];
 			add(chartingInfo);
-		}
+		}*/
 
 		super.create();
         // 保存 fpsVar 的初始位置
@@ -1247,7 +1267,7 @@ class PlayState extends MusicBeatState
 	// cool right? -Crow
 	public dynamic function updateScore(miss:Bool = false)
 	{
-		updateScoreText();
+		updateScoreText(miss);
 		if (!miss)
 			doScoreBop();
 	}
@@ -1267,39 +1287,32 @@ class PlayState extends MusicBeatState
 			var tempScore:String = '';
 	
 			if (ClientPrefs.data.scoretxtstyle == 'MintRhythm')
-			{	
-				if (ClientPrefs.data.showcaseStyle == 'Kade')
-					tempScore = 'NPS: ${nps} | Score: ${songScore}'
+			{
+				tempScore = 'NPS: ${nps} (${maxNPS}) | Score: ${songScore}'
 				+ (!instakillOnMiss ? ' | Miss: ${songMisses}' : "")
 				+ ' | Acc: ${percent}% | ${ratingFC}'
 				+ (cpuControlled ? ' | AUTOPLAY' : "");
-
-				else tempScore = 'NPS: ${nps} | Score: ${songScore}';
-				// "tempScore" variable is used to prevent another memory leak, just in case
-				// "\n" here prevents the text from being cut off by beat zooms
 			}
 			else if (ClientPrefs.data.scoretxtstyle == 'Kade')
-			{	
-				//这里还没改完
-				if(cpuControlled) tempScore = 'NPS: ${nps} | Score: ${songScore}';
-				else
-				tempScore = 'NPS: ${nps} | Score: ${songScore}'
+			{
+				//这里懒得改了
+				tempScore = 'NPS: ${nps} (Max: ${maxNPS}) | Score: ${songScore}'
 				+ (!instakillOnMiss ? ' | Combo Breaks: ${songMisses}' : "")
 				+ ' | Accuracy: ${percent}% | (${ratingFC}) ${ratingNameKE}'
-				+ (cpuControlled ? ' | AUTOPLAY' : "");
+				+ (cpuControlled ? ' | BOTPLAY' : "");
+			}
+			else
+			{
+				tempScore = 'Score: ${songScore}'
+				+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
+				+ ' | Rating: ${str}'
+				+ (cpuControlled ? ' | BOTPLAY' : "");
 				// "tempScore" variable is used to prevent another memory leak, just in case
 				// "\n" here prevents the text from being cut off by beat zooms
 			}
-			else {
-				tempScore = 'Score: ${songScore}'
-			+ (!instakillOnMiss ? ' | Misses: ${songMisses}' : "")
-			+ ' | Rating: ${str}'
-			+ (cpuControlled ? ' | BOTPLAY' : "");
-			// "tempScore" variable is used to prevent another memory leak, just in case
-			// "\n" here prevents the text from being cut off by beat zooms
-	}
-		scoreTxt.text = '${tempScore}\n';
-		callOnScripts('onUpdateScore', [miss]);
+			
+			scoreTxt.text = '${tempScore}\n';
+			callOnScripts('onUpdateScore', [miss]);
 		}
 	
 	public dynamic function fullComboFunction()
@@ -1310,14 +1323,16 @@ class PlayState extends MusicBeatState
 		var shits:Int = ratingsData[3].hits;
         var perfects:Int = !ClientPrefs.data.rmperfect ? ratingsData[4].hits : 0;    
 
-		ratingFC = ClientPrefs.data.scoretxtstyle == 'Psych' ? "?" : "";
+		ratingFC = /*ClientPrefs.data.scoretxtstyle == 'Psych' ? "?" : */"?";
+		if(ClientPrefs.data.scoretxtstyle == 'MintRhythm') ratingFC = "IDK";
+		if(ClientPrefs.data.scoretxtstyle == 'Kade') ratingFC = "PFC";
+
 		if(songMisses == 0)
 		{
 			if (bads > 0 || shits > 0) ratingFC = 'FC';
 			else if (goods > 0) ratingFC = 'GFC';
 			else if (sicks > 0) ratingFC = 'SFC';
 			else if (perfects > 0) ratingFC = 'PFC';
-			
 		}
 		else {
 			if (songMisses < 10) ratingFC = 'SDCB';
@@ -1325,22 +1340,30 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	public function doScoreBop():Void {
-		if(!ClientPrefs.data.scoreZoom)
-			return;
-		if(ClientPrefs.data.scoretxtstyle == 'Kade')
-		{}//还没想好
-
-		if(scoreTxtTween != null)
+	public function doScoreBop (): Void {
+		if (!ClientPrefs.data.scoreZoom || ClientPrefs.data.scoretxtstyle == 'Kade')
+			return;	
+		if (scoreTxtTween != null)
 			scoreTxtTween.cancel();
-
+		if (scoreTxtTweenAngle != null)
+			scoreTxtTweenAngle.cancel();
+	
 		scoreTxt.scale.x = 1.075;
 		scoreTxt.scale.y = 1.075;
-		scoreTxtTween = FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, 0.2, {
-			onComplete: function(twn:FlxTween) {
+		scoreTxtTween = FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, ClientPrefs.data.scoretxtstyle == 'MintRhythm' ? 0.15 : 0.2, {
+			onComplete: function (twn: FlxTween) {
 				scoreTxtTween = null;
 			}
 		});
+	
+		if (ClientPrefs.data.scoretxtbounce) {
+			scoreTxt.angle = (Math.random() * 2.5) * (Math.random() > .5 ? 1 : -1);
+			scoreTxtTweenAngle = FlxTween.tween(scoreTxt, {angle: 0}, ClientPrefs.data.scoretxtstyle == 'MintRhythm' ? 0.15 : 0.2, {
+				onComplete: function (twn: FlxTween) {
+					scoreTxtTweenAngle = null;
+				}
+			});
+		}
 	}
 
 	public function setSongTime(time:Float)
@@ -1827,23 +1850,6 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
-		{
-			var balls = notesHitArray.length - 1;
-			while (balls >= 0)
-			{
-				var cock:Date = notesHitArray[balls];
-				if (cock != null && cock.getTime() + 1000 < Date.now().getTime())
-					notesHitArray.remove(cock);
-				else
-					balls = 0;
-				balls--;
-			}
-			nps = notesHitArray.length;
-			if (nps > maxNPS)
-				maxNPS = nps;
-			if (npsCheck != nps)
-				updateScoreText();
-		}
 
 		if(!inCutscene && !paused && !freezeCamera) {
 			FlxG.camera.followLerp = 2.4 * cameraSpeed * playbackRate;
@@ -1890,7 +1896,7 @@ class PlayState extends MusicBeatState
 
 		// 平滑处理显示血量
 		if(ClientPrefs.data.smoothHP) {
-			healthLerp = FlxMath.lerp(healthLerp, health, elapsed * 10); // 调整这个系数控制平滑速度
+			healthLerp = FlxMath.lerp(healthLerp, health, elapsed * 2); // 调整这个系数控制平滑速度
 			displayedHealth = healthLerp;
 			}
 
@@ -1961,6 +1967,29 @@ class PlayState extends MusicBeatState
 				var index:Int = unspawnNotes.indexOf(dunceNote);
 				unspawnNotes.splice(index, 1);
 			}
+		}
+
+		{
+			var balls = notesHitArray.length - 1;
+			while (balls >= 0)
+			{
+				var cock:Date = notesHitArray[balls];
+				if (cock != null && cock.getTime() + 1000 < Date.now().getTime())
+					notesHitArray.remove(cock);
+				else
+					balls = 0;
+				balls--;
+			}
+			nps = notesHitArray.length;
+			if (nps > maxNPS)
+				maxNPS = nps;
+			if (npsCheck != nps) {
+			    npsCheck = nps;			    
+			    updateScoreText();				  
+			}
+			setOnLuas('nps', nps);
+			setOnLuas('maxFPS', maxNPS);	
+
 		}
 
 		if (generatedMusic)
@@ -2041,10 +2070,9 @@ class PlayState extends MusicBeatState
 	// Health icon updaters
 	public dynamic function updateIconsScale(elapsed:Float)
 		{
-			var percent:Float = (displayedHealth / 2) * 100; // 根据实际血条范围调整
+			var percent:Float = (displayedHealth / maxHealth) * 100; // 根据显示血量计算百分比
 			iconP1.animation.curAnim.curFrame = (percent < 20) ? 1 : 0;
-			iconP2.animation.curAnim.curFrame = (percent > 80) ? 1 : 0;
-		
+			iconP2.animation.curAnim.curFrame = (percent > 80) ? 1 : 0;		
 			// 根据 ClientPrefs.data.iconbopstyle 设置 speedMultiplier
 			var speedMultiplier:Float;
 			switch (ClientPrefs.data.iconbopstyle)
@@ -2055,6 +2083,8 @@ class PlayState extends MusicBeatState
 					speedMultiplier = 5;
 				case "SB":
 					speedMultiplier = 20;
+				case "VSlice":
+					speedMultiplier = 14;
 				default:
 					speedMultiplier = 9;
 			}
@@ -2087,28 +2117,29 @@ public dynamic function updateIconsPosition()
 
 }
 
-	var iconsAnimations:Bool = true;
+	//var iconsAnimations:Bool = true;
 	// PlayState.hx
-	function set_health(value:Float):Float {
-		if (health == value) return value;
-		
-		var ret:Dynamic = callOnScripts('preSetHealth', [value]);
-		if(ret != LuaUtils.Function_Stop) {
-			// 使用healthBar.bounds.max作为上限（如果存在），否则使用maxHealth
-			var upperBound:Float = (healthBar != null && healthBar.bounds.max != null) ? healthBar.bounds.max : maxHealth;
-			value = Math.max(0, Math.min(value, upperBound));
-			
-			// 立即更新实际health值
-			health = value;
-			
-			// 非平滑模式时直接同步显示值
-			if(!ClientPrefs.data.smoothHP) {
-				displayedHealth = value;
-				healthLerp = value;
-			}
-		}
-		return health;
-	}
+// 设置血量的函数
+function set_health(value:Float):Float {
+    if (health == value) return value;
+    
+    var ret:Dynamic = callOnScripts('preSetHealth', [value]);
+    if(ret != LuaUtils.Function_Stop) {
+        // 使用healthBar.bounds.max作为上限（如果存在），否则使用maxHealth
+        var upperBound:Float = (healthBar != null && healthBar.bounds.max != null) ? healthBar.bounds.max : maxHealth;
+        value = Math.max(0, Math.min(value, upperBound));
+        
+        // 立即更新实际health值
+        health = value;
+        
+        // 非平滑模式时直接同步显示值
+        if(!ClientPrefs.data.smoothHP) {
+            displayedHealth = value;
+            healthLerp = value;
+        }
+    }
+    return health;
+}
 
 	function openPauseMenu()
 	{
@@ -2139,15 +2170,30 @@ public dynamic function updateIconsPosition()
 	}
 
 	// PlayState.hx
-function updateHealthBar() {
+// 更新血条显示的函数
+public function updateHealthBar() {
     if(healthBar == null || healthBar.valueFunction == null) return;
     
-    var percent:Float = FlxMath.remapToRange(
+    // 根据实际血量和显示血量计算百分比
+    var actualPercent:Float = FlxMath.remapToRange(
+        FlxMath.bound(health, healthBar.bounds.min, healthBar.bounds.max),
+        healthBar.bounds.min, healthBar.bounds.max, 0, 100
+    );
+    var displayedPercent:Float = FlxMath.remapToRange(
         FlxMath.bound(displayedHealth, healthBar.bounds.min, healthBar.bounds.max),
         healthBar.bounds.min, healthBar.bounds.max, 0, 100
     );
- // 使用percent属性而不是setPercent方法
- healthBar.percent = (displayedHealth / maxHealth) * 100;
+    
+    // 如果启用了平滑HP，则更新显示血量，否则直接使用实际血量
+    if(ClientPrefs.data.smoothHP) {
+        healthLerp = FlxMath.lerp(healthLerp, health, 0.05); // 平滑过渡速度可调
+        displayedHealth = healthLerp;
+    } else {
+        displayedHealth = health;
+    }
+    
+    // 更新血条的显示值
+    healthBar.percent = displayedPercent;
 }
 
 	function openChartEditor()
@@ -2259,7 +2305,7 @@ function updateHealthBar() {
 		if(Math.isNaN(flValue3)) flValue3 = null;
 		if(Math.isNaN(flValue4)) flValue4 = null;
 	
-		if (chartingMode) {
+		/*if (chartingMode) {
 			var eventText = new FlxText(20, chartingInfo.y + chartingInfo.height + 20 + (eventAlerts.length * 30), FlxG.width - 40, 
 			'${isLuaEvent ? 'SCRIPT ' : 'GAME '}Event: ${eventName}\nInsert Value: ${value1}, ${value2}, ${value3}, ${value4}', 14);
 			eventText.setFormat(Paths.font("vcr.ttf"), 16, isLuaEvent ? FlxColor.ORANGE : FlxColor.CYAN, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -2284,7 +2330,7 @@ function updateHealthBar() {
 
 			// 更新chartingInfo
 			chartingInfo.text = 'GAME Events Left: ${eventNotes.length}';
-		}
+		}*/
 
 		switch(eventName) {
 			case 'Hey!':
@@ -2660,7 +2706,7 @@ function updateHealthBar() {
 			if (chartingMode)
 			{
 				openChartEditor();
-				resetFPSVarPosition();
+				//resetFPSVarPosition();
 				return false;
 			}
 
@@ -2902,14 +2948,14 @@ function updateHealthBar() {
 
 		if(ClientPrefs.data.ratbounce == true && !PlayState.isPixelStage) 
 		{
-			rating.scale.set(0.9, 0.72);
-			FlxTween.tween(rating.scale, {x: 0.7, y: 0.7}, 0.4, {ease: FlxEase.circOut,});
+			rating.scale.set(0.85, 0.73);
+			FlxTween.tween(rating.scale, {x: 0.7, y: 0.7}, 0.3, {ease: FlxEase.circOut});
 		}
 
 		if(ClientPrefs.data.exratbounce == true)
 		{
 			theEXrating.scale.set(0.85, 0.85);
-			theEXrating.angle = (Math.random() * 10 + 4) * (Math.random() > .5 ? 1 : -1);
+			theEXrating.angle = (Math.random() * 10 + 4) * (Math.random() > .3 ? 1 : -1);
 			FlxTween.tween(theEXrating, {angle: 0}, .6, {ease: FlxEase.quartOut});
 			FlxTween.tween(theEXrating.scale, {x: 0.7, y: 0.7}, 0.5, {ease: FlxEase.circOut});
 		}
@@ -3556,11 +3602,18 @@ function updateHealthBar() {
 					iconP1.scale.set(1.4, 1.4);
 					iconP2.scale.set(1.4, 1.4);
 					}
-				else if (ClientPrefs.data.iconbopstyle == "Leather") {
-					iconP1.scale.set(1.25, 1.25);
-					iconP2.scale.set(1.25, 1.25);
+					else if (ClientPrefs.data.iconbopstyle == "Leather") {
+						iconP1.scale.set(1.25, 1.25);
+						iconP2.scale.set(1.25, 1.25);
 					}
-	
+					else if (ClientPrefs.data.iconbopstyle == "Vanilla") {
+						iconP1.scale.set(1.1, 1.1);
+						iconP2.scale.set(1.1, 1.1);
+					}
+					else if (ClientPrefs.data.iconbopstyle == "VSlice") {
+						iconP1.scale.set(1.4, 1.4);
+						iconP2.scale.set(1.4, 1.4);
+						}
 				else {
 			iconP1.scale.set(1.2, 1.2);
 			iconP2.scale.set(1.2, 1.2);

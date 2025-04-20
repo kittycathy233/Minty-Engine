@@ -67,7 +67,7 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		Language.get("iconbop_style_desc"),
 		'iconbopstyle',
 		'string',
-		['Psych', 'OS', 'MintRhythm', 'Kade', 'Leather', 'SB', 'NONE']);
+		['Psych', 'OS', 'MintRhythm', 'Kade', 'Leather', 'SB', 'Vanilla', 'VSlice', 'NONE']);
 		addOption(option);
 
 		var option:Option = new Option('ScoreTxt Style',
@@ -120,6 +120,14 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'volumeTheme',
 		'string',
 		['Vanilla', 'Psych', 'Archive']);
+
+		addOption(option);
+		var option:Option = new Option('TimeBar Style',
+		//Language.get("loading_style_desc"),
+		'（施工中）更改游戏内时间条的样式',
+		'timebarStyle',
+		'string',
+		['default', 'Kade']);
 		addOption(option);
 
 		var option:Option = new Option('CPU Strums',
@@ -141,6 +149,18 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		['Kade', 'Psych']);
 		addOption(option);
 
+// ExtraGameplaySettingsSubState.hx 修改选项声明
+var option:Option = new Option('FPS-Txt Style',
+	'修改fps计数器的格式',
+	'fpstxtStyle',
+	'string',
+	['default', 'Kade']);
+option.onChange = function() {
+	if (Main.fpsVar != null) {
+		Main.fpsVar.updateText(); // 强制刷新文本格式
+	}
+};
+addOption(option);
 
 		var option = new Option(
             "Engine Language",
@@ -153,7 +173,8 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 			ClientPrefs.saveSettings(); // 保存设置
 			Language.load();            // 立即重载语言
 			refreshAllTexts();          // 自定义方法刷新界面文本
-		};        addOption(option);
+		};
+		addOption(option);
 
 		super();
 	}

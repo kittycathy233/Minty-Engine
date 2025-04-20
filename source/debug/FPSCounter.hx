@@ -27,24 +27,32 @@ class FPSCounter extends TextField
 	@:noCompletion private var times:Array<Float>;
 
 	public function new(x:Float = 10, y:Float = 10, color:Int = 0x000000)
-	{
-		super();
-
-		this.x = x;
-		this.y = y;
-
-		currentFPS = 0;
-		selectable = false;
-		mouseEnabled = false;
-		defaultTextFormat = new TextFormat("_sans", 14, color);
-		autoSize = LEFT;
-		multiline = true;
-		text = "Loading... ";
-
-		times = [];
-	}
+		{
+			super();
+	
+			this.x = x;
+			this.y = y;
+	
+			currentFPS = 0;
+			selectable = false;
+			mouseEnabled = false;
+			// 移除默认字体设置
+			defaultTextFormat = new TextFormat(getFontName(), 14, color);
+			autoSize = LEFT;
+			multiline = true;
+			text = "Loading... ";
+	
+			times = [];
+		}
 
 	var deltaTimeout:Float = 0.0;
+// 添加字体获取方法
+private function getFontName():String
+	{
+		return (ClientPrefs.data.fpstxtStyle == 'Kade') ? 
+		openfl.utils.Assets.getFont("assets/fonts/vcr.ttf").fontName : 
+			"_sans";
+	}
 
 	// Event Handlers
 	private override function __enterFrame(deltaTime:Float):Void
@@ -66,6 +74,11 @@ class FPSCounter extends TextField
 	}
 
 	public dynamic function updateText():Void { // so people can override it in hscript
+		
+		// 更新文本格式
+		var format = new TextFormat(getFontName(), 14, 0xFFFFFF);
+		this.setTextFormat(format);
+		this.defaultTextFormat = format;
 		if (memoryMegas > memoryPeak) {
             memoryPeak = memoryMegas;
         }

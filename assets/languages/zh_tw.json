@@ -16,6 +16,17 @@
     "single_splashanim_desc": "使用單一的箭頭命中特效動畫",
     "game_font": "vcr.ttf",
     "botplay_text": "SourceHanSansCN-Bold.otf",
-    "smooth_hpbar_desc": "使血量條顯示更平滑"
-
+    "smooth_hpbar_desc": "使血量條顯示更平滑",
+    "showcase_style_desc": "（施工中）\n設定展示模式下的樣式配置",
+    "cpu_strums_desc": "啟用機器人箭頭命中特效",
+    "botplaytxt_style_desc": "變更BOTPLAY文字顯示效果",
+    "fpstxt_style_desc": "修改FPS計數器字型樣式",
+    "show_version_desc": "於FPS計數器位置附加顯示當前版本",
+    "focus_game_desc": "視窗失去焦點時自動暫停遊戲",
+    "show_exrating_desc": "顯示擴充評級圖示\n檔案命名範例：sick-extra.png\n像素場景請避免啟用，除非備有對應貼圖素材",
+    "rating_bounce_desc": "增強評級圖示彈跳動畫\n注意：此選項存在多項已知問題，建議停用",
+    "exrating_bounce_desc": "增強擴充評級圖示彈跳動畫\n注意：同前項存在穩定性問題",
+    "rating_opac_desc": "調整評級貼圖不透明度（100%為原始值）",
+    "rm_perfect_judge_desc": "移除「Perfect!」評級顯示\n同步影響擴充評級貼圖表現",
+    "timebar_style_desc": "（未完成）\n修改遊戲時間軸視覺樣式"
 }

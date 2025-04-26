@@ -18,5 +18,16 @@
     "smooth_hpbar_desc": "使血条看起来更丝滑",
     "musicplayer_desc": "设置音乐播放器的样式",
     "musicplayer_text": "SPACE:暂停/播放 | ←/→:快退/快进 | R:重置速度 | CTRL:返回",
-    "showcase_style_desc": "（施工中）\n设置展示模式下的样式"
+    "showcase_style_desc": "（施工中）\n设置展示模式下的样式",
+    "cpu_strums_desc": "启用bot箭头的命中效果",
+    "botplaytxt_style_desc": "更改BOTPLAY文字的显示效果",
+    "fpstxt_style_desc": "更改FPS计数器的字体",
+    "show_version_desc": "在FPS Counter的位置附加显示当前版本",
+    "focus_game_desc": "当游戏未处于焦点时会暂停",
+    "show_exrating_desc": "显示额外的rating\n文件名（例子）: sick-extra.png\n别在pixel场景启用它，因为没有做，除非你有相关贴图",
+    "rating_bounce_desc": "加强评分图标的跳动效果\n注：此选项存在较多bug，建议禁用",
+    "exrating_bounce_desc": "加强扩展评分图标的跳动效果\n当然同上，这个选项也存在一些bug",
+    "rating_opac_desc": "修改评级贴图的不透明度，100%为不修改.",
+    "rm_perfect_judge_desc": "如名，移除“Perfect！”评级\n同时扩展评级贴图也会改变",
+    "timebar_style_desc": "（未完成）\n更改游戏内时间条的样式"
 }

@@ -18,8 +18,8 @@ haxelib install tjson 1.4.0
 haxelib install hxdiscord_rpc 1.1.1
 haxelib install json2object 3.11.0
 haxelib git SScript https://github.com/mcagabe19-stuff/SScript-7.7.0 main
-haxelib git hxCodec https://github.com/polybiusproxy/hxCodec main
-haxelib git flxanimate https://github.com/ShadowMario/flxanimate dev
+haxelib install hxCodec 3.0.2
+haxelib git flxanimate https://github.com/FunkinExtraKeys/flxanimate dev
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit master
 
 echo Finished!

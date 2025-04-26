@@ -317,8 +317,8 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 					colorTween.cancel();
 				}
 				FlxG.sound.play(Paths.sound('cancelMenu'));
-				if (!ClientPrefs.data.BAMenu) MusicBeatState.switchState(new MainMenuState());
-				else MusicBeatState.switchState(new MainMenuStateArchived());
+				/*if (!ClientPrefs.data.BAMenu) */MusicBeatState.switchState(new MainMenuState());
+				//else MusicBeatState.switchState(new MainMenuStateArchived());
 			}
 		}
 

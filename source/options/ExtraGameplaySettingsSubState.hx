@@ -9,43 +9,43 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 
 		//I'd suggest using "Downscroll" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('show Game Version', //Name
-		"在FPS Counter的位置附加显示当前版本", //Description
+		Language.get("show_version_desc"),
 		'exgameversion',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Focus Game', //Name
-		"当游戏未处于焦点时会暂停", //Description
+		Language.get("focus_game_desc"),
 		'autoPause',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Show Extra-Rating',
-		"显示额外的rating\n文件名（例子）: sick-extra.png\n别在pixel场景启用它，因为大喵没有做，除非你有类似贴图",
+		Language.get("show_exrating_desc"),
 		'exratingDisplay',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Rating Bounce',
-		"加强评分图标的跳动效果\n注：此选项存在较多bug，建议禁用",
+		Language.get("rating_bounce_desc"),
 		'ratbounce',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Extra-Rating Bounce',
-		"加强扩展评分图标的跳动效果\n当然同上，这个选项也存在一些bug",
+		Language.get("exrating_bounce_desc"),
 		'exratbounce',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Remove Perfect! Note Judgement',
-		"如名，移除“Perfect！”评级\n同时扩展评级贴图也会改变",
+		Language.get("rm_perfect_judge_desc"),
 		'rmperfect',
 		'bool');
 		addOption(option);
 
 		var option:Option = new Option('Ratings Opacity',
-			'修改评级贴图的不透明度，100%为不修改.',
+			Language.get("rating_opac_desc"),
 			'ratingsAlpha',
 			'percent');
 		option.scrollSpeed = 1.6;
@@ -96,11 +96,11 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		['Vanilla', 'NovaFlare Move', 'NovaFlare Alpha', 'MintRhythm']);
 		addOption(option);
 
-		var option:Option = new Option('Blue Archive MENU',
+		/*var option:Option = new Option('Blue Archive MENU',
 		Language.get("bamenu_desc"),
 		'BAMenu',
 		'bool');
-		addOption(option);
+		addOption(option);*/
 
 		var option:Option = new Option('Single Note Splash Anim',
 		Language.get("single_splashanim_desc"),
@@ -114,17 +114,16 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
-		var option:Option = new Option('Volume Style',
+		/*var option:Option = new Option('Volume Style',
 		//Language.get("loading_style_desc"),
 		'（施工中）更改音量条主题',
 		'volumeTheme',
 		'string',
 		['Vanilla', 'Psych', 'Archive']);
+		addOption(option);*/
 
-		addOption(option);
 		var option:Option = new Option('TimeBar Style',
-		//Language.get("loading_style_desc"),
-		'（施工中）更改游戏内时间条的样式',
+		Language.get("timebar_style_desc"),
 		'timebarStyle',
 		'string',
 		['default', 'Kade']);
@@ -151,7 +150,7 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 
 // ExtraGameplaySettingsSubState.hx 修改选项声明
 var option:Option = new Option('FPS-Txt Style',
-	'修改fps计数器的格式',
+			Language.get("fpstxt_style_desc"),
 	'fpstxtStyle',
 	'string',
 	['default', 'Kade']);

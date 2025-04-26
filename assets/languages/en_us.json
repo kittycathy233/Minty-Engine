@@ -15,6 +15,17 @@
     "change_language_desc": "Select display language\nYou need to restart the options menu after changing this setting.",
     "single_splashanim_desc": "use single arrow animation for note splash",
     "game_font": "vcr.ttf",
-    "smooth_hpbar_desc": "make hp bar look smoother"
-
+    "smooth_hpbar_desc": "make hp bar look smoother",
+    "showcase_style_desc": "(WIP)\nConfigure display styles in showcase mode",
+    "cpu_strums_desc": "Enable hit effects for bot arrows",
+    "botplaytxt_style_desc": "Modify visual effects for BOTPLAY text display",
+    "fpstxt_style_desc": "Change font style for FPS counter",
+    "show_version_desc": "Append current version information next to FPS counter",
+    "focus_game_desc": "Pause game when window loses focus",
+    "show_exrating_desc": "Display extended rating graphics\nFile format example: sick-extra.png\nAvoid enabling in pixel scenarios as implementation requires corresponding textures",
+    "rating_bounce_desc": "Enhance bounce animation for rating icons\nNote: This option contains multiple known issues, recommended to keep disabled",
+    "exrating_bounce_desc": "Enhance bounce animation for extended rating icons\nNote: Similarly contains various stability issues",
+    "rating_opac_desc": "Adjust opacity level for rating textures (100% = original opacity)",
+    "rm_perfect_judge_desc": "Remove 'Perfect!' rating display\nAffects extended rating textures accordingly",
+    "timebar_style_desc": "(Incomplete)\nModify timebar visual presentation in gameplay"
 }

@@ -269,6 +269,7 @@ var iconsAnimations:Bool = true; // 控制图标动画的开关
 	public var camHUD:FlxCamera;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
+	public var camArchived:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
 	public var songScore:Int = 0;
@@ -366,11 +367,14 @@ var iconsAnimations:Bool = true; // 控制图标动画的开关
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();
 		camOther = new FlxCamera();
+		camArchived = new FlxCamera();
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
+		camArchived.bgColor.alpha = 0;
 
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
+		FlxG.cameras.add(camArchived, false);
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
 
 		persistentUpdate = true;
@@ -467,7 +471,7 @@ var iconsAnimations:Bool = true; // 控制图标动画的开关
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
-		luaDebugGroup.cameras = [camOther];
+		luaDebugGroup.cameras = [camArchived];
 		add(luaDebugGroup);
 		#end
 
@@ -679,7 +683,7 @@ var iconsAnimations:Bool = true; // 控制图标动画的开关
 
 		// 添加水印文本
 		var watermarkText = new FlxText(20, FlxG.height - 20, 0, 
-    	SONG.song + "-" + storyDifficultyText + ' | MintRhythm Engine v${MainMenuState.mintrhythmEngineVersion}', 
+    	SONG.song + "-" + Difficulty.getString().toUpperCase() + ' | MintRhythm Engine v${MainMenuState.mintrhythmEngineVersion}', 
     		14);
 		watermarkText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		watermarkText.scrollFactor.set();

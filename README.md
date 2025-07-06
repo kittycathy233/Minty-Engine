@@ -1,16 +1,16 @@
-# warning
-This branch is made specifically for the latest version of PE at the time (0.7.3)! The reason I'm not doing this in main is because when all the commits from experimental get merged into main its going to cause a lot of trouble as experimental will house EK PE 1.0 which will then be merged into main when it is released.
+# tips
+This branch is made specifically for the latest version of PE at the time (v0.7.3)
 
 to be updated
 
 # Friday Night Funkin' - MintRhythm Engine
 
-Based on Psych EK v0.4.9, this engine draws inspiration from [Funk Archive](https://gamebanana.com/mods/496238) and aims to provide [Blue Archive](https://en.wikipedia.org/wiki/Blue_Archive) players with a more user-friendly UI and the integration of features from other PE branches.
+Based on Psych EK Latest Build (v0.4.9), this engine draws inspiration from [Funk Archive](https://gamebanana.com/mods/496238) and aims to provide [Blue Archive](https://en.wikipedia.org/wiki/Blue_Archive) gamers with a more user-friendly UI and the integration of features from other PE branches.
 
-## MintRhythm Credits:
-* KittyCathy - Programmer
+## MintRhythm Members(?):
+* [KittyCathy](https://github.com/kittycathy233) - Programmer
 
-### Sprcial Thanks:
+### Special Thanks:
 * NovaFlare Engine:[New](https://github.com/beihu235/FNF-NovaFlare-Engine) / [Legacy](https://github.com/beihu235/NovaFlare-Engine-V1.0.1)
 * [Kimi](https://kimi.moonshot.cn/)
 * [DeepSeek](https://www.deepseek.com/)

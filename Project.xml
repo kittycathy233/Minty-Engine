@@ -2,7 +2,7 @@
 <project>
 	<!-- _________________________ Application Settings _________________________ -->
 
-	<app title="Friday Night Funkin': MintRhythm Engine" file="MintRhythmEngine" packageName="com.mzdm.MREngine" package="com.mzdm.MREngine" main="Main" version="0.2.8" company="MZDM" />
+	<app title="PE: EK: M.R.Extended" file="MintRhythmEK" packageName="com.kittycathy.mrek" package="com.kittycathy.mrek" main="Main" version="0.1.1" company="ShadowMario" />
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
 	<set name="APP_ID" value="0x0100f6c013bbc000" />
@@ -160,6 +160,9 @@
 	<!--Disable deprecated warnings-->
 	<haxedef name='no-deprecation-warnings' />
 
+	<!-- Do whatever you want I'm tired uninstall and install everytime -->
+	<certificate path="key.keystore" password="psychengine" alias="psychport" alias-password="psychengine" if="android" unless="debug" />
+
 	<!--Macro fixes-->
 	<haxeflag name="--macro" value="allowPackage('flash')" />
 	<haxeflag name="--macro" value="include('my.pack')" />
@@ -176,4 +179,12 @@
 	<icon path="art/icon32.png" size='32'/>
 	<icon path="art/icon64.png" size='64'/>
 	<icon path="art/iconOG.png" />
+
+	<!-- _______________________________ Addons ______________________________ -->
+	<haxelib name="flxgif" />
+	<haxelib name="flxsvg" />
+	<haxelib name="funkin.vis"/>
+	<haxelib name="grig.audio"/>
+	<haxelib name="extension-androidtools" />
+
 </project>

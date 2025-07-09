@@ -45,6 +45,7 @@ class Note extends FlxSprite
 
 	public var strumTime:Float = 0;
 	public var noteData:Int = 0;
+	public var mania:Int = 3; // 统一使用成员变量
 
 	public var mustPress:Bool = false;
 	public var canBeHit:Bool = false;
@@ -155,11 +156,8 @@ class Note extends FlxSprite
 
 	public function defaultRGB()
 	{
-		var mania = 3;
-		if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[getIndex(mania, noteData)];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[getIndex(mania, noteData)];
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[getIndex(noteData)];
+		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[getIndex(noteData)];
 
 		if (noteData > -1 /*&& noteData <= arr.length*/)
 		{
@@ -212,7 +210,7 @@ class Note extends FlxSprite
 		return value;
 	}
 
-	public function getIndex(mania:Int, note:Int):Int {
+	public function getIndex(note:Int):Int {
 		return ExtraKeysHandler.instance.data.keys[mania].notes[note];
 	}
 
@@ -228,6 +226,9 @@ class Note extends FlxSprite
 
 		antialiasing = ClientPrefs.data.antialiasing;
 		if(createdFrom == null) createdFrom = PlayState.instance;
+		
+		// 统一初始化mania
+		mania = (PlayState.SONG != null) ? PlayState.SONG.mania : 3;
 
 		if (prevNote == null)
 			prevNote = this;
@@ -247,15 +248,13 @@ class Note extends FlxSprite
 
 		if(noteData > -1) {
 			texture = '';
-			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
+			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, mania));
 			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) rgbShader.enabled = false;
 
 			x += swagWidth * (noteData);
 			if(!isSustainNote/* && noteData < colArray.length*/) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
-				var mania = 3;
-				if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-				animToPlay = getAnimSet(getIndex(mania, noteData)).note;
+				animToPlay = getAnimSet(getIndex(noteData)).note;
 				animation.play(animToPlay + 'Scroll');
 			}
 		}
@@ -275,9 +274,7 @@ class Note extends FlxSprite
 			offsetX += width / 2;
 			copyAngle = false;
 
-			var mania = 3;
-			if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-			var animToPlay = getAnimSet(getIndex(mania, noteData)).note;
+			var animToPlay = getAnimSet(getIndex(noteData)).note;
 			animation.play(animToPlay + 'holdend');
 
 			updateHitbox();
@@ -317,17 +314,16 @@ class Note extends FlxSprite
 		x += offsetX;
 	}
 
-	public static function initializeGlobalRGBShader(noteData:Int)
+	public static function initializeGlobalRGBShader(noteData:Int, mania:Int)
 	{
 		if(globalRgbShaders[noteData] == null)
 		{
 			var newRGB:RGBPalette = new RGBPalette();
 			globalRgbShaders[noteData] = newRGB;
 
-			var mania = 3;
-			if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-
-			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGB[ExtraKeysHandler.instance.data.keys[mania].notes[noteData]] : ClientPrefs.data.arrowRGBPixel[ExtraKeysHandler.instance.data.keys[mania].notes[noteData]];
+			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? 
+				ClientPrefs.data.arrowRGB[ExtraKeysHandler.instance.data.keys[mania].notes[noteData]] : 
+				ClientPrefs.data.arrowRGBPixel[ExtraKeysHandler.instance.data.keys[mania].notes[noteData]];
 			if (noteData > -1 /*&& noteData <= arr.length*/)
 			{
 				newRGB.r = arr[0];
@@ -343,6 +339,7 @@ class Note extends FlxSprite
 	public var originalHeight:Float = 6;
 	public var correctionOffset:Float = 0; //dont mess with this
 	public function reloadNote(texture:String = '', postfix:String = '') {
+		mania = PlayState.SONG.mania;
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
 
@@ -379,8 +376,6 @@ class Note extends FlxSprite
 				var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
 				loadGraphic(graphic, true, Math.floor(graphic.width / 6), Math.floor(graphic.height / 5));
 			}
-			var mania = 3;
-			if (PlayState.SONG != null) mania = PlayState.SONG.mania;
 			setGraphicSize((width * (ExtraKeysHandler.instance.data.pixelScales[mania] + 0.3)) * PlayState.daPixelZoom);
 			loadPixelNoteAnims();
 			antialiasing = false;
@@ -418,28 +413,22 @@ class Note extends FlxSprite
 	}
 
 	function loadNoteAnims() {
-		var mania = 3;
-		if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-		var noteAnim = getAnimSet(getIndex(mania, noteData)).note;
-
-		if (isSustainNote)
-		{
-			attemptToAddAnimationByPrefix('purpleholdend', 'pruple end hold', 24, true); // this fixes some retarded typo from the original note .FLA
-			animation.addByPrefix(noteAnim + 'holdend', noteAnim + ' hold end', 24, true);
-			animation.addByPrefix(noteAnim + 'hold', noteAnim + ' hold piece', 24, true);
-		}
-		else animation.addByPrefix(noteAnim + 'Scroll', noteAnim + '0');
-
-		setGraphicSize(width * ExtraKeysHandler.instance.data.scales[mania]);
+    	var noteAnim = getAnimSet(getIndex(noteData)).note; // 动态获取动画名
+    	if (isSustainNote) {
+        	attemptToAddAnimationByPrefix('purpleholdend', 'pruple end hold', 24, true);
+        	animation.addByPrefix(noteAnim + 'holdend', noteAnim + ' hold end', 24, true);
+    	animation.addByPrefix(noteAnim + 'hold', noteAnim + ' hold piece', 24, true);
+    	} else {
+        	animation.addByPrefix(noteAnim + 'Scroll', noteAnim + '0');
+    	}
+    	setGraphicSize(width * ExtraKeysHandler.instance.data.scales[mania]);
 		//trace(width, ExtraKeysHandler.instance.data.scales[mania]);
-		updateHitbox();
+    	updateHitbox();
 	}
 
 	function loadPixelNoteAnims() {
-		var mania = 3;
-		if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-		var noteAnimStr = getAnimSet(getIndex(mania, noteData)).note;
-		var noteAnimInt = getAnimSet(getIndex(mania, noteData)).pixel;
+		var noteAnimStr = getAnimSet(getIndex(noteData)).note;
+		var noteAnimInt = getAnimSet(getIndex(noteData)).pixel;
 
 		if(isSustainNote)
 		{
@@ -460,6 +449,10 @@ class Note extends FlxSprite
 
 	override function update(elapsed:Float)
 	{
+
+		if (PlayState.SONG.mania != mania)
+		mania = PlayState.SONG.mania;
+
 		super.update(elapsed);
 
 		if (mustPress)
@@ -496,8 +489,6 @@ class Note extends FlxSprite
 
 	public function followStrumNote(myStrum:StrumNote, fakeCrochet:Float, songSpeed:Float = 1)
 	{
-		var mania = 3;
-		if (PlayState.SONG != null) mania = PlayState.SONG.mania;
 		var Mscale = ExtraKeysHandler.instance.data.scales[mania];
 		if (PlayState.isPixelStage) Mscale = ExtraKeysHandler.instance.data.pixelScales[mania];
 		var sWidth = Note.swagWidthUnscaled * Mscale;
@@ -537,8 +528,6 @@ class Note extends FlxSprite
 
 	public function clipToStrumNote(myStrum:StrumNote)
 	{
-		var mania = 3;
-		if (PlayState.SONG != null) mania = PlayState.SONG.mania;
 		var Mscale = ExtraKeysHandler.instance.data.scales[mania];
 		if (PlayState.isPixelStage) Mscale = ExtraKeysHandler.instance.data.pixelScales[mania];
 		var sWidth = Note.swagWidthUnscaled * Mscale;

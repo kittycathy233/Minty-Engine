@@ -318,12 +318,14 @@ class PauseSubState extends MusicBeatSubstate
 
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 					//PlayState.instance.resetFPSVarPosition();
-					FlxTween.tween(Main.fpsVar, {x: 10}, 1, {
+
+					//暂时用不着这个了
+					/*FlxTween.tween(Main.fpsVar, {x: 10}, 1, {
 						ease: FlxEase.circOut
 					});
 					FlxTween.tween(Main.fpsVar, {y: 3}, 1, {
 						ease: FlxEase.circOut
-					});
+					});*/
 					PlayState.changedDifficulty = false;
 					PlayState.chartingMode = false;
 					FlxG.camera.followLerp = 0;

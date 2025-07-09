@@ -81,7 +81,9 @@ class ChartingState extends MusicBeatState
 		['Change Scroll Speed', "Value 1: Scroll Speed Multiplier (1 is default)\nValue 2: Time it takes to change fully in seconds."],
 		['Set Property', "Value 1: Variable name\nValue 2: New value"],
 		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"],
-		['Change Window Title', "Value 1: Title name"]
+		['Change Window Title', "Value 1: Title name"],
+		['Change icon', "Value 1: Dad icon\nValue2: BF icon"],
+		['Change Mania', "Value 1: New mania number (e.g. 4)"]
 	];
 
 	var _file:FileReference;
@@ -378,7 +380,7 @@ class ChartingState extends MusicBeatState
 		}
 		lastSong = currentSongName;
 
-		zoomTxt = new FlxText(10, 10, 0, "Zoom: 1 / 1", 16);
+		zoomTxt = new FlxText(10, FlxG.height - 30, 0, "Zoom: 1 / 1", 16);
 		zoomTxt.scrollFactor.set();
 		add(zoomTxt);
 
@@ -462,14 +464,14 @@ class ChartingState extends MusicBeatState
 			saveEvents();
 		});
 
-		var clear_events:FlxButton = new FlxButton(320, 310, 'Clear events', function()
+		var clear_events:FlxButton = new FlxButton(110, 310, 'Clear events', function()
 			{
 				openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, clearEvents, null,ignoreWarnings));
 			});
 		clear_events.color = FlxColor.RED;
 		clear_events.label.color = FlxColor.WHITE;
 
-		var clear_notes:FlxButton = new FlxButton(320, clear_events.y + 30, 'Clear notes', function()
+		var clear_notes:FlxButton = new FlxButton(110, clear_events.y + 30, 'Clear notes', function()
 			{
 				openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, function(){for (sec in 0..._song.notes.length) {
 					_song.notes[sec].sectionNotes = [];
@@ -1679,7 +1681,7 @@ class ChartingState extends MusicBeatState
 						updateGrid();
 					}
 				}
-				if(sender == value3InputText) {
+				else if(sender == value3InputText) {
 					if(curSelectedNote[1][curEventSelected] != null)
 					{
 						curSelectedNote[1][curEventSelected][3] = value3InputText.text;
@@ -2784,16 +2786,28 @@ class ChartingState extends MusicBeatState
 					}
 				}
 			} else {
-				eventDropDown.selectedLabel = curSelectedNote[1][curEventSelected][0];
-				var selected:Int = Std.parseInt(eventDropDown.selectedId);
-				if(selected > 0 && selected < eventStuff.length) {
-					descText.text = eventStuff[selected][1];
-				}
-				value1InputText.text = curSelectedNote[1][curEventSelected][1];
-				value2InputText.text = curSelectedNote[1][curEventSelected][2];
-				value3InputText.text = curSelectedNote[1][curEventSelected][3];
-				value4InputText.text = curSelectedNote[1][curEventSelected][4];
-			}
+            // ==== 安全修复 ====
+            if (curSelectedNote[1] != null && 
+                curEventSelected >= 0 && 
+                curEventSelected < curSelectedNote[1].length)
+            {
+                var eventData = curSelectedNote[1][curEventSelected];
+                if (eventData != null)
+                {
+                    eventDropDown.selectedLabel = eventData[0];
+                    value1InputText.text = eventData[1] != null ? eventData[1] : "";
+                    value2InputText.text = eventData[2] != null ? eventData[2] : "";
+                    value3InputText.text = eventData[3] != null ? eventData[3] : "";
+                    value4InputText.text = eventData[4] != null ? eventData[4] : "";
+                }
+            }
+            else
+            {
+                trace("事件数据无效，已重置UI");
+                value1InputText.text = value2InputText.text = 
+                value3InputText.text = value4InputText.text = "";
+            }
+        }
 			strumTimeInputText.text = '' + curSelectedNote[0];
 		}
 	}
@@ -2996,38 +3010,64 @@ class ChartingState extends MusicBeatState
 	}
 
 	function selectNote(note:Note):Void
-	{
-		var noteDataToCheck:Int = note.noteData;
+{
+    var noteDataToCheck:Int = note.noteData;
+    curSelectedNote = null;
 
-		if(noteDataToCheck > -1)
-		{
-			if(note.mustPress != _song.notes[curSec].mustHitSection) noteDataToCheck += (_song.mania + 1);
-			for (i in _song.notes[curSec].sectionNotes)
-			{
-				if (i != curSelectedNote && i.length > 2 && i[0] == note.strumTime && i[1] == noteDataToCheck)
-				{
-					curSelectedNote = i;
-					break;
-				}
-			}
-		}
-		else
-		{
-			for (i in _song.events)
-			{
-				if(i != curSelectedNote && i[0] == note.strumTime)
-				{
-					curSelectedNote = i;
-					curEventSelected = Std.int(curSelectedNote[1].length) - 1;
-					break;
-				}
-			}
-		}
-		changeEventSelected();
+    if (noteDataToCheck > -1) // Normal Notes
+    {
+        if(note.mustPress != _song.notes[curSec].mustHitSection) 
+            noteDataToCheck += (_song.mania + 1);
+        
+        for (i in _song.notes[curSec].sectionNotes)
+        {
+            if (i != null && i != curSelectedNote && i.length > 2 && i[0] == note.strumTime && i[1] == noteDataToCheck)
+            {
+                curSelectedNote = i;
+                break;
+            }
+        }
+    }
+    else // Events
+    {
+        for (i in _song.events)
+        {
+            if (i != null && i[0] == note.strumTime)
+            {
+                curSelectedNote = i;
+                
+                // ==== 安全修复部分 ====
+                if (curSelectedNote[1] == null) 
+                {
+                    curSelectedNote[1] = []; // 初始化空数组防止后续崩溃
+                    trace("警告：事件数据为空，已初始化");
+                }
+                
+                // 确保 curEventSelected 在有效范围内 [0, length-1]
+                curEventSelected = Std.int(
+                    Math.max(0, 
+                        Math.min(
+                            curSelectedNote[1].length - 1, 
+                            (curSelectedNote[1].length > 0 ? curEventSelected : 0)
+                        )
+                    )
+                );
+                break;
+            }
+        }
+    }
 
-		updateGrid();
-		updateNoteUI();
-	}
+    // ==== 额外保护：如果未找到音符，重置状态 ====
+    if (curSelectedNote == null) 
+    {
+        curEventSelected = 0;
+        trace("未找到选中的音符或事件");
+    }
+
+    changeEventSelected();
+    updateGrid();
+    updateNoteUI();
+}
 
 	function deleteNote(note:Note):Void
 	{
@@ -3122,7 +3162,9 @@ class ChartingState extends MusicBeatState
 			var event = eventStuff[Std.parseInt(eventDropDown.selectedId)][0];
 			var text1 = value1InputText.text;
 			var text2 = value2InputText.text;
-			_song.events.push([noteStrum, [[event, text1, text2]]]);
+			var text3 = value3InputText.text;
+			var text4 = value4InputText.text;
+			_song.events.push([noteStrum, [[event, text1, text2, text3, text4]]]);
 			curSelectedNote = _song.events[_song.events.length - 1];
 			curEventSelected = 0;
 		}

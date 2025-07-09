@@ -58,5 +58,9 @@ import flixel.tweens.FlxTween;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
+import flxgif.FlxGifSprite;
+
 using StringTools;
 #end
+
+

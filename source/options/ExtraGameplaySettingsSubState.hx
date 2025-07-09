@@ -1,5 +1,10 @@
 package options;
 
+import flixel.text.FlxText;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+
 class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 {
 	public function new()
@@ -44,6 +49,24 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
+		option = new Option('Score Incrase When BotPlay',
+			Language.get("bot_addscore_desc"),
+			'botplayScore',
+			'bool');
+		addOption(option);
+
+		option = new Option('Show "Combo" Sprite',
+			Language.get("gameplay_combospr_desc"),
+			'comboSprDisplay',
+			'bool');
+		addOption(option);
+
+		option = new Option('Show Event Information',
+			Language.get("events_debug_desc"),
+			'eventDebug',
+			'bool');
+		addOption(option);
+
 		var option:Option = new Option('Ratings Opacity',
 			Language.get("rating_opac_desc"),
 			'ratingsAlpha',
@@ -55,6 +78,25 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		option.decimals = 1;
 		addOption(option);
 
+				option = new Option('HUD Zoom Speed',
+			Language.get("hud_zoomstyle_desc"),
+			'hudZoomStyle',
+			'string',
+			['default', 'Fast', 'Slow', 'Kade']);
+		addOption(option);
+
+		option = new Option('HUD Zoom',
+			Language.get("camhud_zoom_desc"),
+			'hudSize',
+			'float');
+		option.displayFormat = '%v X';
+		option.scrollSpeed = 1;
+		option.minValue = 0.5;
+		option.maxValue = 1.2;
+		option.changeValue = 0.005;
+		option.decimals = 3; //小数点后三位
+		addOption(option);
+
 		var option:Option = new Option('HealthBar Style',
 		Language.get("healthbar_style_desc"),
 		'healthbarstyle',
@@ -63,18 +105,18 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 
-		var option:Option = new Option('IconBop Style',
-		Language.get("iconbop_style_desc"),
-		'iconbopstyle',
-		'string',
-		['Psych', 'OS', 'MintRhythm', 'Kade', 'Leather', 'SB', 'Vanilla', 'VSlice', 'NONE']);
+		option = new Option('IconBop Style',
+			Language.get("iconbop_style_desc"),
+			'iconbopstyle',
+			'string',
+			['Psych', 'OS', 'MintRhythm', 'Leather', 'SB', 'Vanilla', 'VSlice(New)', 'VSlice(Old)', 'Codename', 'Dave', 'NovaFlare', 'NONE']);
 		addOption(option);
 
-		var option:Option = new Option('ScoreTxt Style',
-		Language.get("scoretxt_style_desc"),
-		'scoretxtstyle',
-		'string',
-		['Psych', 'OS', 'MintRhythm', 'Kade']);
+		option = new Option('ScoreTxt Style',
+			Language.get("scoretxt_style_desc"),
+			'scoretxtstyle',
+			'string',
+			['Psych', 'OS', 'MintRhythm', 'Kade', 'V-Slice']);
 		addOption(option);
 
 		var option:Option = new Option('Remove the "ms" offset',

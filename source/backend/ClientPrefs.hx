@@ -15,7 +15,7 @@ import states.TitleState;
 	public var keybindShowcase:Bool = true;
 	public var showFPS:Bool = true;
 	public var flashing:Bool = true;
-	public var autoPause:Bool = true;
+	public var autoPause:Bool = false;
 	public var antialiasing:Bool = true;
 	public var noteSkin:String = 'Default';
 	public var splashSkin:String = 'Psych';
@@ -118,6 +118,23 @@ import states.TitleState;
 	public var fpstxtStyle:String = "Kade";
 	public var timebarStyle:String = "Kade";
 	
+	//如下为MRE v0.2.2照搬来的内容
+	//public var legacynotepos:Bool = false;
+	public var ratingsPos:String = "camHUD";
+
+	public var fpsPosition:String = "TOP_LEFT"; // "TOP_LEFT", "TOP_RIGHT", "BOTTOM_LEFT", "BOTTOM_RIGHT"
+	public var fpsSpacing:Int = 10;
+	public var hudSize:Float = 1.0;
+	public var enableModsImport:Bool = false; // Enable Mods Import in the main menu
+	public var eventDebug:Bool = true;
+	public var botplayScore:Bool = true;
+	public var systemCursor:Bool = false;
+	public var hudZoomStyle:String = "default";
+	public var showNPS:Bool = true; // Show NPS in the ScoreTxt
+	public var showResultScreen:Bool = true; // Show the result screen after finishing a song
+	public var comboSprDisplay:Bool = false; //据说这是官方废稿，我不知道就是了
+
+
 }
 
 class ClientPrefs {
@@ -357,8 +374,9 @@ class ClientPrefs {
 		FlxG.autoPause = ClientPrefs.data.autoPause;
 
 		if(FlxG.save.data.framerate == null) {
-			final refreshRate:Int = FlxG.stage.application.window.displayMode.refreshRate;
-			data.framerate = Std.int(FlxMath.bound(refreshRate, 60, 240));
+			//final refreshRate:Int = FlxG.stage.application.window.displayMode.refreshRate;
+			//data.framerate = Std.int(FlxMath.bound(refreshRate, 60, 240));
+			data.framerate = 120;
 		}
 		#end
 

@@ -1,3 +1,4 @@
+// StrumNote.hx
 package objects;
 
 import backend.InputFormatter;
@@ -13,6 +14,7 @@ class StrumNote extends FlxSprite
 	public var rgbShader:RGBShaderReference;
 	public var resetAnim:Float = 0;
 	private var noteData:Int = 0;
+	public var mania:Int = 3; // 统一使用成员变量
 	public var direction:Float = 90;//plan on doing scroll directions soon -bb
 	public var downScroll:Bool = false;//plan on doing scroll directions soon -bb
 	public var sustainReduce:Bool = true;
@@ -33,14 +35,14 @@ class StrumNote extends FlxSprite
 	public function new(x:Float, y:Float, leData:Int, player:Int) {
 		animation = new PsychAnimationController(this);
 
-		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
+		// 统一初始化mania
+		mania = (PlayState.SONG != null) ? PlayState.SONG.mania : 3;
+		
+		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData, mania));
 		rgbShader.enabled = false;
 		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
 
-		var mania = 3;
-		if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-		
-		var arrowRGBIndex = getIndex(mania, leData);
+		var arrowRGBIndex = getIndex(leData);
 
 		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[arrowRGBIndex];
 
@@ -72,34 +74,14 @@ class StrumNote extends FlxSprite
 	public function reloadNote()
 	{
 		var lastAnim:String = null;
-		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
+		if (animation.curAnim != null)
+			lastAnim = animation.curAnim.name;
 
-		if(PlayState.isPixelStage)
+		if (PlayState.isPixelStage)
 		{
-			loadGraphic(Paths.image('pixelUI/' + texture));
-			width = width / 6;
-			height = height / 5;
-			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
-
-			antialiasing = false;
-
-			initialWidth = width;
-			//trace(initialWidth);
-
-			setGraphicSize(width * PlayState.daPixelZoom);
-
-			var mania = 3;
-			if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-
-			var noteAnimInt = getAnimSet(getIndex(mania, noteData)).pixel;
-
-			animation.add('circle', [11]);
-			animation.add('rombus', [10]);
-			animation.add('red', [9]);
-			animation.add('green', [8]);
-			animation.add('blue', [7]);
-			animation.add('purple', [6]);
-
+			// ...省略...
+			var noteAnimInt = getAnimSet(getIndex(noteData)).pixel;
+			// ...省略...
 			animation.add('static', [noteAnimInt]);
 			animation.add('pressed', [noteAnimInt + 6, noteAnimInt + 12], 12, false);
 			animation.add('confirm', [noteAnimInt + 18, noteAnimInt + 24], 24, false);
@@ -107,6 +89,8 @@ class StrumNote extends FlxSprite
 		else
 		{
 			frames = Paths.getSparrowAtlas(texture);
+			// 动态获取动画名
+			var animSet = getAnimSet(getIndex(noteData));
 			animation.addByPrefix('green', 'arrowUP');
 			animation.addByPrefix('blue', 'arrowDOWN');
 			animation.addByPrefix('purple', 'arrowLEFT');
@@ -118,16 +102,13 @@ class StrumNote extends FlxSprite
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(width * trackedScale);
 
-			var mania = 3;
-			if (PlayState.SONG != null) mania = PlayState.SONG.mania;
-
-			animation.addByPrefix('static', 'arrow${getAnimSet(getIndex(mania, noteData)).strum}');
-			animation.addByPrefix('pressed', '${getAnimSet(getIndex(mania, noteData)).anim} press', 24, false);
-			animation.addByPrefix('confirm', '${getAnimSet(getIndex(mania, noteData)).anim} confirm', 24, false);
+			animation.addByPrefix('static', 'arrow${animSet.strum}');
+			animation.addByPrefix('pressed', '${animSet.anim} press', 24, false);
+			animation.addByPrefix('confirm', '${animSet.anim} confirm', 24, false);
 		}
 		updateHitbox();
 
-		if(lastAnim != null)
+		if (lastAnim != null)
 		{
 			playAnim(lastAnim, true);
 		}
@@ -146,8 +127,8 @@ class StrumNote extends FlxSprite
 		var padding:Float = 0;
 		var minPaddingStartThresh:Int = 4;
 		//if (PlayState.isPixelStage) minPaddingStartThresh = 3;
-		if (PlayState.SONG.mania > minPaddingStartThresh) {
-			padding = 4 * (PlayState.SONG.mania - minPaddingStartThresh);
+		if (mania > minPaddingStartThresh) {
+			padding = 4 * (mania - minPaddingStartThresh);
 			if (padding > 8) padding = 8;
 		}
 		//trace(padding);
@@ -170,13 +151,13 @@ class StrumNote extends FlxSprite
 		var sWidth = /*(PlayState.isPixelStage && PlayState.SONG.mania > maniaThresh) ? (180 + ((10 + (5 * (PlayState.SONG.mania - maniaThresh))) * (PlayState.SONG.mania - maniaThresh))) : */ Note.swagWidthUnscaled;
 		if (!ClientPrefs.data.middleScroll) {
 			x = player == 0 ? 320 : 960;
-			x += ((sWidth * trackedScale) - padding) * (-((PlayState.SONG.mania+1) / 2) + noteData);
+			x += ((sWidth * trackedScale) - padding) * (-((mania+1) / 2) + noteData);
 		} else {
 			x = player == 0 ? 320 : 640;
 			if (player == 0) {
-				if (noteData > Math.floor((PlayState.SONG.mania / 2))) x = 960;
+				if (noteData > Math.floor((mania / 2))) x = 960;
 			}
-			x += ((sWidth * trackedScale) - padding) * (-((PlayState.SONG.mania+1) / 2) + noteData);
+			x += ((sWidth * trackedScale) - padding) * (-((mania+1) / 2) + noteData);
 		}
 		//trace(padding);
 	}
@@ -189,6 +170,9 @@ class StrumNote extends FlxSprite
 				resetAnim = 0;
 			}
 		}
+		if (PlayState.SONG.mania != mania)
+		mania = PlayState.SONG.mania;
+
 		super.update(elapsed);
 	}
 
@@ -202,7 +186,7 @@ class StrumNote extends FlxSprite
 		if(useRGBShader) rgbShader.enabled = (animation.curAnim != null && animation.curAnim.name != 'static');
 	}
 
-	public function getIndex(mania:Int, note:Int) {
+	public function getIndex(note:Int) {
 		return ExtraKeysHandler.instance.data.keys[mania].notes[note];
 	}
 

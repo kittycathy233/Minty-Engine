@@ -80,6 +80,16 @@
       "dir": null,
       "ref": "master",
       "url": "https://github.com/superpowers04/linc_luajit"
+    },
+    {
+      "name": "flxgif",
+      "type": "haxelib",
+      "version": "1.0.3"
+    },
+    {
+      "name": "flxsvg",
+      "type": "haxelib",
+      "version": "1.1.0"
     }
   ]
 }

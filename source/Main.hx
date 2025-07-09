@@ -130,7 +130,7 @@ FlxSprite.defaultAntialiasing = true;
 Lib.current.stage.quality = openfl.display.StageQuality.HIGH;
 #end
 		#if !mobile
-		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);
+		fpsVar = new FPSCounter(10, 10, 0xFFFFFF);
 		addChild(fpsVar);
 		fpsVar.x = 10;
 		Lib.current.stage.align = "tl";

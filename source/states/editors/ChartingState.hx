@@ -39,6 +39,7 @@ import objects.AttachedSprite;
 import objects.Character;
 import substates.Prompt;
 
+import debug.FPSCounter;
 
 #if sys
 import flash.media.Sound;
@@ -151,6 +152,15 @@ class ChartingState extends MusicBeatState
 	var currentSongName:String;
 
 	var zoomTxt:FlxText;
+	var zoomThing:String;
+
+	// 杂七杂八的东西
+	private var uiBoxVisible:Bool = true;
+	private var uiBoxTargetX:Float;
+	private var uiBoxMovingSpeed:Float = 1000; // 移动速度（像素/秒）
+	private var uiBoxOriginalX:Float; // 存储原始X位置
+	private var uiBoxLerpRatio:Float = 0.15; // 插值比例 (0.1-0.5之间更丝滑)
+	private var uiBoxX:Float = 0; // UI Box的宽度
 
 	var zoomList:Array<Float> = [
 		0.25,
@@ -196,6 +206,13 @@ class ChartingState extends MusicBeatState
 	public var mouseQuant:Bool = false;
 	override function create()
 	{
+
+		if (Main.fpsVar != null) {
+    		Main.fpsVar.baseX = 1120; // 修改 X 坐标
+    		Main.fpsVar.x = 1120;     // 同时更新实际位置（可选）
+    		Main.fpsVar.charting = true; // 设置 charting 为 true
+		}
+
 		if (PlayState.SONG != null)
 			_song = PlayState.SONG;
 		else
@@ -289,8 +306,11 @@ class ChartingState extends MusicBeatState
 		Conductor.mapBPMChanges(_song);
 		if(curSec >= _song.notes.length) curSec = _song.notes.length - 1;
 
-		bpmTxt = new FlxText(1100, 50, 0, "", 16);
+		bpmTxt = new FlxText(10, 30, 0, "", 16);
 		bpmTxt.scrollFactor.set();
+		bpmTxt.setFormat(Paths.font("arturito-slab.ttf"), 18, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		bpmTxt.borderSize = 2;
+
 		add(bpmTxt);
 
 		// strumLine = new FlxSprite(0, 50).makeGraphic(Std.int(GRID_SIZE * 9), 4);
@@ -325,12 +345,20 @@ class ChartingState extends MusicBeatState
 
 		UI_box = new FlxUITabMenu(null, tabs, true);
 
-		UI_box.resize(300, 400);
-		UI_box.x = FlxG.width / 2 + 120;
-		UI_box.y = 25;
+		UI_box.resize(320, 400);
+		UI_box.x = FlxG.width - UI_box.width - 30;
+		UI_box.y = FlxG.height / 2 - UI_box.height / 2;
 		UI_box.scrollFactor.set();
+		uiBoxOriginalX = FlxG.width - UI_box.width - 30;
+		uiBoxTargetX = uiBoxOriginalX;
+		UI_box.backColor = 0x708090; // 蓝色背景
+		//UI_box.tabOverColor = 0x708090; // 鼠标悬停时的颜色
+		//UI_box.tabDownColor = 0x0080ff; // 鼠标按下时的颜色
+		//UI_box.tabNormalColor = 0xFF6A6A; // 普通状态的颜色
 
-		text =
+		UI_box.dragEnabled = true;
+
+		/*text =
 		"W/S or Mouse Wheel - Change Conductor's strum time
 		\nA/D - Go to the previous/next section
 		\nLeft/Right - Change Snap
@@ -347,6 +375,9 @@ class ChartingState extends MusicBeatState
 		\nEnter - Play your chart
 		\nQ/E - Decrease/Increase Note Sustain Length
 		\nSpace - Stop/Resume song";
+*/
+
+		text = "";
 
 		var tipTextArray:Array<String> = text.split('\n');
 		for (i in 0...tipTextArray.length) {
@@ -382,7 +413,7 @@ class ChartingState extends MusicBeatState
 
 		zoomTxt = new FlxText(10, FlxG.height - 30, 0, "Zoom: 1 / 1", 16);
 		zoomTxt.scrollFactor.set();
-		add(zoomTxt);
+		//add(zoomTxt);
 
 		updateGrid();
 		super.create();
@@ -464,14 +495,14 @@ class ChartingState extends MusicBeatState
 			saveEvents();
 		});
 
-		var clear_events:FlxButton = new FlxButton(110, 310, 'Clear events', function()
+		var clear_events:FlxButton = new FlxButton(200, 300, 'Clear events', function()
 			{
 				openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, clearEvents, null,ignoreWarnings));
 			});
 		clear_events.color = FlxColor.RED;
 		clear_events.label.color = FlxColor.WHITE;
 
-		var clear_notes:FlxButton = new FlxButton(110, clear_events.y + 30, 'Clear notes', function()
+		var clear_notes:FlxButton = new FlxButton(200, clear_events.y + 30, 'Clear notes', function()
 			{
 				openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, function(){for (sec in 0..._song.notes.length) {
 					_song.notes[sec].sectionNotes = [];
@@ -1836,6 +1867,50 @@ class ChartingState extends MusicBeatState
 			}
 		}
 
+		var wasMoving:Bool = false; // 记录移动状态
+
+// 1. 检测F3按键（在原有逻辑前添加打断检测）
+if (FlxG.keys.justPressed.F3)
+{
+    // 如果正在移动，立即设置新位置
+    if (wasMoving) {
+        UI_box.x = uiBoxTargetX; // 完成当前移动
+    }
+    
+    uiBoxVisible = !uiBoxVisible;
+    uiBoxTargetX = uiBoxVisible ? uiBoxOriginalX : FlxG.width + 10;
+}
+
+	if (FlxG.mouse.pressed)
+	{
+		// 记录当前UI Box的位置
+		uiBoxX = UI_box.x;
+		uiBoxTargetX = uiBoxX;
+	}
+		// 2. 平滑移动(?)
+		var isMoving:Bool = Math.abs(UI_box.x - uiBoxTargetX) > 1;
+if (isMoving)
+{
+	if (FlxG.mouse.pressed) return;
+    // 使用插值实现平滑移动
+    UI_box.x = FlxMath.lerp(UI_box.x, uiBoxTargetX, uiBoxLerpRatio);
+    
+    // 如果距离很小直接跳到目标位置
+    if (Math.abs(UI_box.x - uiBoxTargetX) < 1) {
+        UI_box.x = uiBoxTargetX;
+    }
+}
+
+		// 3. 移动时禁用交互
+		var isMoving:Bool = Math.abs(UI_box.x - uiBoxTargetX) > 1;
+			UI_box.active = !isMoving;
+			for (text in blockPressWhileTypingOn)
+				text.active = !isMoving;
+			for (stepper in blockPressWhileTypingOnStepper)
+				stepper.active = !isMoving;
+			for (dropdown in blockPressWhileScrolling)
+				dropdown.active = !isMoving;
+
 		var blockInput:Bool = false;
 		for (inputText in blockPressWhileTypingOn) {
 			if(inputText.hasFocus) {
@@ -1902,6 +1977,12 @@ class ChartingState extends MusicBeatState
 
 				//if(_song.stage == null) _song.stage = stageDropDown.selectedLabel;
 				StageData.loadDirectory(_song);
+				if (Main.fpsVar != null) {
+    				Main.fpsVar.baseX = 10; // 修改 X 坐标
+    				Main.fpsVar.x = 10;     // 同时更新实际位置（可选）
+					Main.fpsVar.charting = false; // 设置 charting 为 false
+
+				}
 				LoadingState.loadAndSwitchState(new PlayState());
 			}
 
@@ -1921,6 +2002,12 @@ class ChartingState extends MusicBeatState
 				// Protect against lost data when quickly leaving the chart editor.
 				autosaveSong();
 				PlayState.chartingMode = false;
+				if (Main.fpsVar != null) {
+    				Main.fpsVar.baseX = 10; // 修改 X 坐标
+    				Main.fpsVar.x = 10;     // 同时更新实际位置（可选）
+					Main.fpsVar.charting = false; // 设置 charting 为 false
+
+				}
 				MusicBeatState.switchState(new states.editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 				FlxG.mouse.visible = false;
@@ -1951,7 +2038,7 @@ class ChartingState extends MusicBeatState
 				else
 				{
 					UI_box.selected_tab += 1;
-					if (UI_box.selected_tab >= 3)
+					if (UI_box.selected_tab >= 5)
 						UI_box.selected_tab = 0;
 				}
 			}
@@ -2199,12 +2286,13 @@ class ChartingState extends MusicBeatState
 		opponentVocals.pitch = playbackSpeed;
 		#end
 
-		bpmTxt.text =
-		Std.string(FlxMath.roundDecimal(Conductor.songPosition / 1000, 2)) + " / " + Std.string(FlxMath.roundDecimal(FlxG.sound.music.length / 1000, 2)) +
-		"\nSection: " + curSec +
-		"\n\nBeat: " + Std.string(curDecBeat).substring(0,4) +
-		"\n\nStep: " + curStep +
-		"\n\nBeat Snap: " + quantization + "th";
+		bpmTxt.text = "Timer: " + Std.string(FlxMath.roundDecimal(Conductor.songPosition / 1000, 2)) + " / " + Std.string(FlxMath.roundDecimal(FlxG.sound.music.length / 1000, 2)) +
+		"\n\nSection: " + curSec +
+		//"\nBeat: " + Std.string(curDecBeat).substring(0,4) +
+		"\nBeat: " + Std.string(Math.floor(curDecBeat)) +		
+		"\nStep: " + curStep +
+		"\n\nBeat Snap: " + quantization + "th" +
+		"\nZoom: " + (zoomThing == null ? '1 / 1' : zoomThing);
 
 		var playedSound:Array<Bool> = [false, false, false, false]; //Prevents ouchy GF sex sounds
 		curRenderedNotes.forEachAlive(function(note:Note) {
@@ -2280,9 +2368,9 @@ class ChartingState extends MusicBeatState
 
 	function updateZoom() {
 		var daZoom:Float = zoomList[curZoom];
-		var zoomThing:String = '1 / ' + daZoom;
+		zoomThing = '1 / ' + daZoom;
 		if(daZoom < 1) zoomThing = Math.round(1 / daZoom) + ' / 1';
-		zoomTxt.text = 'Zoom: ' + zoomThing;
+		//zoomTxt.text = 'Zoom: ' + zoomThing;
 		reloadGridLayer();
 	}
 

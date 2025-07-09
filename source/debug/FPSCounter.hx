@@ -17,27 +17,29 @@ class FPSCounter extends Sprite
     private var memoryPeak:Float = 0;
     @:noCompletion private var times:Array<Float>;
 
+    public var charting:Bool = false; // 检测是否在制谱器
+
     // 抖动效果相关
-    private var shakeTime:Float = 0;
-    private var shakeStrength:Float = 0;
-    private var baseX:Float = 10;
-    private var baseY:Float = 10;
+    var shakeTime:Float = 0;
+    var shakeStrength:Float = 0;
+    public var baseX:Float = 10;
+    public var baseY:Float = 10;
 
     // UI 元素
-    private var bg:Shape;
-    private var tfFPS:TextField;
-    private var tfMem:TextField;
-    private var tfPeak:TextField;
-    private var tfVersion:TextField;
-    private var tfDelay:TextField; // 新增延迟文本
+    var bg:Shape;
+    var tfFPS:TextField;
+    var tfMem:TextField;
+    var tfPeak:TextField;
+    var tfVersion:TextField;
+    var tfDelay:TextField;
 
     // 尺寸插值相关
     private var targetWidth:Float = 0;
     private var targetHeight:Float = 0;
     private var currentWidth:Float = 0;
     private var currentHeight:Float = 0;
-    private static final SIZE_LERP_FACTOR:Float = 0.2; // 尺寸插值速度 (0-1)
-    private static final SIZE_CHANGE_THRESHOLD:Float = 0.4; // 尺寸变化阈值(像素)
+    private static final SIZE_LERP_FACTOR:Float = 0.2;
+    private static final SIZE_CHANGE_THRESHOLD:Float = 0.4;
 
     // 布局常量
     private static final BASE_SIZE:Int = 16;
@@ -49,9 +51,9 @@ class FPSCounter extends Sprite
     private static final BG_ALPHA:Float = 0.45;
     private static final BG_BORDER_ALPHA:Float = 0.5;
 
-    private var currentDelay:Float = 0; // 当前延迟（ms）
-    private var delayUpdateTimer:Float = 0; // 延迟刷新计时器
-    private static final DELAY_UPDATE_INTERVAL:Float = 0.2; // 延迟刷新间隔（秒）
+    private var currentDelay:Float = 0;
+    private var delayUpdateTimer:Float = 0;
+    private static final DELAY_UPDATE_INTERVAL:Float = 0.2;
 
     public function new(x:Float = 10, y:Float = 10, color:Int = 0x00FF00)
     {
@@ -72,23 +74,21 @@ class FPSCounter extends Sprite
         // 创建文本字段
         var monoFont = getFontName();
         tfFPS = createField(PADDING, PADDING, BASE_SIZE, monoFont);
-        tfDelay = createField(PADDING, PADDING + ROW_HEIGHT, BASE_SIZE, monoFont); // 新增延迟文本
+        tfDelay = createField(PADDING, PADDING + ROW_HEIGHT, BASE_SIZE, monoFont);
         tfMem = createField(PADDING, PADDING + ROW_HEIGHT * 2, BASE_SIZE, monoFont);
         tfPeak = createField(PADDING, PADDING + ROW_HEIGHT * 3, BASE_SIZE, monoFont);
         tfVersion = createField(PADDING, PADDING + ROW_HEIGHT * 4 + VERSION_SPACING, VERSION_SIZE, monoFont);
         
-        // 版本信息特殊设置
         tfVersion.multiline = true;
         tfVersion.wordWrap = true;
-        tfVersion.width = 230; // 初始宽度，会被动态调整
+        tfVersion.width = 230;
         
         addChild(tfFPS);
-        addChild(tfDelay); // 新增
+        addChild(tfDelay);
         addChild(tfMem);
         addChild(tfPeak);
         addChild(tfVersion);
 
-        // 初始绘制
         updateText();
     }
 
@@ -130,7 +130,7 @@ class FPSCounter extends Sprite
         if (delayUpdateTimer >= DELAY_UPDATE_INTERVAL) {
             delayUpdateTimer = 0;
             if (currentFPS > 0)
-                currentDelay = Math.fround(1000.0 / currentFPS * 10) / 10; // 保留一位小数
+                currentDelay = Math.fround(1000.0 / currentFPS * 10) / 10;
             else
                 currentDelay = 0;
         }
@@ -148,7 +148,6 @@ class FPSCounter extends Sprite
             this.x = baseX + (Math.random() - 0.5) * shakeStrength * 2;
             this.y = baseY + (Math.random() - 0.5) * shakeStrength * 2;
         } else {
-            // 平滑回位
             this.x += (baseX - this.x) * 0.25;
             this.y += (baseY - this.y) * 0.25;
             if (Math.abs(this.x - baseX) < 0.1) this.x = baseX;
@@ -163,7 +162,6 @@ class FPSCounter extends Sprite
             currentWidth += (targetWidth - currentWidth) * SIZE_LERP_FACTOR;
             currentHeight += (targetHeight - currentHeight) * SIZE_LERP_FACTOR;
             
-            // 接近目标值时直接设为准确值
             if (Math.abs(targetWidth - currentWidth) < SIZE_CHANGE_THRESHOLD) currentWidth = targetWidth;
             if (Math.abs(targetHeight - currentHeight) < SIZE_CHANGE_THRESHOLD) currentHeight = targetHeight;
             
@@ -174,67 +172,100 @@ class FPSCounter extends Sprite
     public dynamic function updateText():Void {
         if (memoryMegas > memoryPeak) memoryPeak = memoryMegas;
 
-        // FPS 颜色渐变
-        var percent:Float = currentFPS / FlxG.drawFramerate;
-        var fpsColor:Int;
-        if (percent >= 1) {
-            fpsColor = 0x00FF00; // 绿色
-        } else if (percent >= 0.8) {
-            fpsColor = lerpColor(0xFFFF00, 0x00FF00, (percent - 0.8) / 0.2);
-        } else if (percent >= 0.5) {
-            fpsColor = lerpColor(0xFF0000, 0xFFFF00, (percent - 0.5) / 0.3);
-        } else {
-            fpsColor = 0xFF0000; // 红色
+        if (charting)
+        {
+            // 制谱器模式 - 只显示FPS和内存峰值
+            tfFPS.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0x90D0FF, true);
+            tfFPS.text = 'FPS: ${currentFPS} / ${FlxG.drawFramerate}';
+            
+            tfPeak.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0xF1A0FF, true);
+            tfPeak.text = 'MEM: ${flixel.util.FlxStringUtil.formatBytes(memoryPeak)}';
+            
+            // 隐藏其他字段
+            tfDelay.visible = false;
+            tfMem.visible = false;
+            tfVersion.visible = false;
+            
+            // 计算背景尺寸
+            var bgHeight = PADDING * 2 + ROW_HEIGHT * 2;
+            var maxTextWidth = Math.max(tfFPS.textWidth, tfPeak.textWidth);
+            
+            targetWidth = Std.int(maxTextWidth) + PADDING * 2 + 4;
+            targetHeight = bgHeight;
+            
+            // 更新文本位置
+            tfFPS.x = PADDING;
+            tfFPS.y = PADDING;
+            tfPeak.x = PADDING;
+            tfPeak.y = PADDING + ROW_HEIGHT;
+        }
+        else
+        {
+            // 正常模式 - 显示所有信息
+            var percent:Float = currentFPS / FlxG.drawFramerate;
+            var fpsColor:Int;
+            if (percent >= 1) {
+                fpsColor = 0x00FF00;
+            } else if (percent >= 0.8) {
+                fpsColor = lerpColor(0xFFFF00, 0x00FF00, (percent - 0.8) / 0.2);
+            } else if (percent >= 0.5) {
+                fpsColor = lerpColor(0xFF0000, 0xFFFF00, (percent - 0.5) / 0.3);
+            } else {
+                fpsColor = 0xFF0000;
+            }
+
+            tfFPS.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, fpsColor, true);
+            tfFPS.text = 'FPS:   ${currentFPS} / ${FlxG.drawFramerate}';
+
+            tfDelay.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0xFFD700, true);
+            tfDelay.text = 'Delay: ${currentDelay} ms';
+
+            tfMem.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0x00BFFF, true);
+            tfMem.text = 'Memory:   ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}';
+
+            tfPeak.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0xFFA500, true);
+            tfPeak.text = 'MEM Peak: ${flixel.util.FlxStringUtil.formatBytes(memoryPeak)}';
+
+            // 显示所有字段
+            tfDelay.visible = true;
+            tfMem.visible = true;
+            
+            // 版本信息
+            tfVersion.visible = ClientPrefs.data.exgameversion;
+            if (tfVersion.visible) {
+                tfVersion.defaultTextFormat = new TextFormat(getFontName(), VERSION_SIZE, 0xCCCCCC, false);
+                tfVersion.text = 'MintRhythm v${MainMenuState.mintrhythmEngineVersion}\nExtraKeys v${MainMenuState.extraKeysVersion}\nPsych Engine v${MainMenuState.psychEngineVersion}';
+            }
+            
+            // 计算背景尺寸
+            var bgHeight = PADDING * 2 + ROW_HEIGHT * 4;
+            if (tfVersion.visible) {
+                bgHeight += VERSION_SPACING + Std.int(tfVersion.textHeight);
+            }
+
+            var maxTextWidth = tfFPS.textWidth;
+            if (tfDelay.textWidth > maxTextWidth) maxTextWidth = tfDelay.textWidth;
+            if (tfMem.textWidth > maxTextWidth) maxTextWidth = tfMem.textWidth;
+            if (tfPeak.textWidth > maxTextWidth) maxTextWidth = tfPeak.textWidth;
+            if (tfVersion.visible && tfVersion.textWidth > maxTextWidth) maxTextWidth = tfVersion.textWidth;
+            
+            targetWidth = Std.int(maxTextWidth) + PADDING * 2 + 4;
+            targetHeight = bgHeight;
+
+            // 更新文本位置
+            tfFPS.x = tfDelay.x = tfMem.x = tfPeak.x = PADDING;
+            tfFPS.y = PADDING;
+            tfDelay.y = PADDING + ROW_HEIGHT;
+            tfMem.y = PADDING + ROW_HEIGHT * 2;
+            tfPeak.y = PADDING + ROW_HEIGHT * 3;
+
+            if (tfVersion.visible) {
+                tfVersion.width = targetWidth - PADDING * 2;
+                tfVersion.y = PADDING + ROW_HEIGHT * 4 + VERSION_SPACING;
+            }
         }
 
-        // 更新文本
-        tfFPS.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, fpsColor, true);
-        tfFPS.text = 'FPS:   ${currentFPS} / ${FlxG.drawFramerate}';
-
-        tfDelay.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0xFFD700, true);
-        tfDelay.text = 'Delay: ${currentDelay} ms';
-
-        tfMem.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0x00BFFF, true);
-        tfMem.text = 'Memory:   ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}';
-
-        tfPeak.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0xFFA500, true);
-        tfPeak.text = 'MEM Peak: ${flixel.util.FlxStringUtil.formatBytes(memoryPeak)}';
-
-        // 版本信息
-        tfVersion.visible = ClientPrefs.data.exgameversion;
-        if (tfVersion.visible) {
-            tfVersion.defaultTextFormat = new TextFormat(getFontName(), VERSION_SIZE, 0xCCCCCC, false);
-            tfVersion.text = 'MintRhythm v${MainMenuState.mintrhythmEngineVersion}\nExtraKeys v${MainMenuState.extraKeysVersion}\nPsych Engine v${MainMenuState.psychEngineVersion}';
-        }
-
-        // 计算目标尺寸
-        var bgHeight = PADDING * 2 + ROW_HEIGHT * 4; // 行数+1
-        if (tfVersion.visible) {
-            bgHeight += VERSION_SPACING + Std.int(tfVersion.textHeight);
-        }
-
-        var maxTextWidth = tfFPS.textWidth;
-        if (tfDelay.textWidth > maxTextWidth) maxTextWidth = tfDelay.textWidth;
-        if (tfMem.textWidth > maxTextWidth) maxTextWidth = tfMem.textWidth;
-        if (tfPeak.textWidth > maxTextWidth) maxTextWidth = tfPeak.textWidth;
-        if (tfVersion.visible && tfVersion.textWidth > maxTextWidth) maxTextWidth = tfVersion.textWidth;
-        
-        targetWidth = Std.int(maxTextWidth) + PADDING * 2 + 4;
-        targetHeight = bgHeight;
-
-        // 更新各文本位置
-        tfFPS.x = tfDelay.x = tfMem.x = tfPeak.x = PADDING;
-        tfFPS.y = PADDING;
-        tfDelay.y = PADDING + ROW_HEIGHT;
-        tfMem.y = PADDING + ROW_HEIGHT * 2;
-        tfPeak.y = PADDING + ROW_HEIGHT * 3;
-
-        if (tfVersion.visible) {
-            tfVersion.width = targetWidth - PADDING * 2;
-            tfVersion.y = PADDING + ROW_HEIGHT * 4 + VERSION_SPACING;
-        }
-
-        // 初始绘制或尺寸无变化时立即更新
+        // 立即更新背景尺寸
         if (currentWidth == 0 || currentHeight == 0 || 
             (Math.abs(targetWidth - currentWidth) < SIZE_CHANGE_THRESHOLD && 
              Math.abs(targetHeight - currentHeight) < SIZE_CHANGE_THRESHOLD)) {

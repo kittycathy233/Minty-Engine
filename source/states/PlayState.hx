@@ -137,6 +137,8 @@ class PlayState extends MusicBeatState
 	var curIconP2:String = '';
 
 	private var initialMania:Int = -114; // 初始的mania值，默认为-114 (臭死力哼哼啊啊啊啊啊)
+	var opponentKeyCount:Int = -114; // 初始的mania值，默认为-114 (臭死力哼哼啊啊啊啊啊)
+	var playerKeyCount:Int = -114; // 初始的mania值，默认为-114 (臭死力哼哼啊啊啊啊啊)
 
 	public var ratingStuff:Array<Dynamic> = [
 		['You Suck!', 0.2], // From 0% to 19%
@@ -1897,66 +1899,62 @@ class PlayState extends MusicBeatState
 	public var skipArrowStartTween:Bool = false; // for lua
 
 	private function generateStaticArrows(player:Int, instantAlpha:Bool = false):Void
-{
-    var strumLineX:Float = ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X;
-    var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
-    for (i in 0...PlayState.SONG.mania + 1)
-    {
-        var targetAlpha:Float = 1;
-        if (player < 1)
-        {
-            if (!ClientPrefs.data.opponentStrums)
-                targetAlpha = 0;
-            else if (ClientPrefs.data.middleScroll)
-                targetAlpha = 0.35;
-        }
+	{
+		var strumLineX:Float = ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X;
+		var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+		for (i in 0...PlayState.SONG.mania + 1)
+		{
+			var targetAlpha:Float = 1;
+			if (player < 1)
+			{
+				if (!ClientPrefs.data.opponentStrums)
+					targetAlpha = 0;
+				else if (ClientPrefs.data.middleScroll)
+					targetAlpha = 0.35;
+			}
 
-        var babyArrow:StrumNote = new StrumNote(strumLineX, strumLineY, i, player);
-        babyArrow.downScroll = ClientPrefs.data.downScroll;
+			var babyArrow:StrumNote = new StrumNote(strumLineX, strumLineY, i, player);
+			babyArrow.downScroll = ClientPrefs.data.downScroll;
 
-        // --- 新增：根据当前mania设置皮肤/颜色 ---
-        // 例如：babyArrow.texture = getArrowTextureForMania(SONG.mania, i);
-        // 例如：babyArrow.color = getArrowColorForMania(SONG.mania, i);
+			if (instantAlpha)
+			{
+				babyArrow.alpha = 0.7;
+				FlxTween.tween(babyArrow, {alpha: targetAlpha}, 0.4, {ease: FlxEase.circOut});
+			}
+			else if (!isStoryMode && !skipArrowStartTween)
+			{
+				babyArrow.alpha = 0;
+				FlxTween.tween(babyArrow, {/*y: babyArrow.y + 10,*/ alpha: targetAlpha}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i)});
+			}
+			else
+				babyArrow.alpha = targetAlpha;
 
-        if (instantAlpha)
-        {
-            babyArrow.alpha = 0.7;
-            FlxTween.tween(babyArrow, {alpha: targetAlpha}, 0.4, {ease: FlxEase.circOut});
-        }
-        else if (!isStoryMode && !skipArrowStartTween)
-        {
-            babyArrow.alpha = 0;
-            FlxTween.tween(babyArrow, {/*y: babyArrow.y + 10,*/ alpha: targetAlpha}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i)});
-        }
-        else
-            babyArrow.alpha = targetAlpha;
+			if (player == 1)
+				playerStrums.add(babyArrow);
+			else
+				opponentStrums.add(babyArrow);
 
-        if (player == 1)
-            playerStrums.add(babyArrow);
-        else
-            opponentStrums.add(babyArrow);
+			strumLineNotes.add(babyArrow);
+			babyArrow.postAddedToGroup();
+		}
+		adaptStrumline(opponentStrums);
+		adaptStrumline(playerStrums);
 
-        strumLineNotes.add(babyArrow);
-        babyArrow.postAddedToGroup();
-    }
-    adaptStrumline(opponentStrums);
-    adaptStrumline(playerStrums);
-
-    if (ClientPrefs.data.keybindShowcase)
-    {
-        for (i in 0...playerStrums.members.length)
-        {
-            var keyShowcase = new KeybindShowcase(playerStrums.members[i].x,
-                ClientPrefs.data.downScroll ? playerStrums.members[i].y - 30 : playerStrums.members[i].y + playerStrums.members[i].height + 5,
-                ClientPrefs.keyBinds.get(keysArray[i]), camHUD, playerStrums.members[i].width / 2, SONG.mania);
-            keyShowcase.onComplete = function()
-            {
-                remove(keyShowcase);
-            }
-            add(keyShowcase);
-        }
-    }
-}
+		if (ClientPrefs.data.keybindShowcase)
+		{
+			for (i in 0...playerStrums.members.length)
+			{
+				var keyShowcase = new KeybindShowcase(playerStrums.members[i].x,
+					ClientPrefs.data.downScroll ? playerStrums.members[i].y - 30 : playerStrums.members[i].y + playerStrums.members[i].height + 5,
+					ClientPrefs.keyBinds.get(keysArray[i]), camHUD, playerStrums.members[i].width / 2, SONG.mania);
+				keyShowcase.onComplete = function()
+				{
+					remove(keyShowcase);
+				}
+				add(keyShowcase);
+			}
+		}
+	}
 
 	public function adaptStrumline(strumline:FlxTypedGroup<StrumNote>)
 	{
@@ -2960,34 +2958,59 @@ class PlayState extends MusicBeatState
     }
     reloadHealthBarColors();
 
-			 case 'Change Mania':
-    var newMania:Int = Std.parseInt(value1);
-    if (!Math.isNaN(newMania) && newMania >= 1 && newMania <= 9 && SONG != null)
-    {
-        SONG.mania = newMania;
-        setOnScripts('mania', newMania);
+			case 'Change Mania':
+				// Value1: 新的mania数目（如 3/4/5/6...）
+				var newMania:Int = Std.parseInt(value1);
+				if (!Math.isNaN(newMania) && newMania >= 1 && newMania <= 9 && SONG != null)
+				{
+					SONG.mania = newMania;
+					setOnScripts('mania', newMania); // 通知Lua
 
-        // 重新生成键位数组
-        keysArray = [];
-        for (i in 0...SONG.mania + 1) {
-            keysArray.push(SONG.mania + '_key_$i');
-        }
+					// 清理旧箭头
+					strumLineNotes.clear();
+					opponentStrums.clear();
+					playerStrums.clear();
 
-        // 清理旧箭头
-        strumLineNotes.clear();
-        opponentStrums.clear();
-        playerStrums.clear();
+					// 重新生成玩家和对手的音符
+					keysArray = [];
+					for (i in 0...SONG.mania + 1)
+					{
+						keysArray.push(SONG.mania + '_key_$i');
+					}
 
-        // 重新生成箭头（样式和键位已更新）
-        generateStaticArrows(0, true);
-        generateStaticArrows(1, true);
-        
-        // +++ 新增：强制刷新所有滚动箭头 +++
-        reloadAllNotes();
-    }
-    else {
-        FlxG.log.warn('Invalid mania value: ' + value1);
-    }
+					// 重新生成箭头
+					generateStaticArrows(0, true);
+					generateStaticArrows(1, true);
+
+					// --- 新增：刷新所有已生成的Note皮肤和动画 ---
+					/*// 刷新已生成的notes
+					for (note in notes)
+					{
+						note.reloadNote();
+					}
+					// 刷新未生成的notes
+					for (note in unspawnNotes)
+					{
+						note.reloadNote();
+					}
+					var notesArr = ExtraKeysHandler.instance.data.keys[newMania].notes;
+					for (note in notes)
+					{
+						if (note.noteData >= notesArr.length)
+							note.noteData = notesArr.length - 1;
+					}
+					for (note in unspawnNotes)
+					{
+						if (note.noteData >= notesArr.length)
+							note.noteData = notesArr.length - 1;
+					}*/
+				}
+				else
+				{
+					FlxG.log.warn('has error to change Mania: ' + value1);
+				}
+
+
 
 
 		
@@ -4895,17 +4918,17 @@ class PlayState extends MusicBeatState
 	}
 	#end
 
-	public function reloadAllNotes()
-	{
-		// 更新已生成的Note
-		for (note in notes)
-			note.reloadNote();
-		// 更新未生成的Note
-		for (note in unspawnNotes)
-			note.reloadNote();
-		// 更新所有StrumNote
-		for (strum in strumLineNotes)
-			strum.reloadNote();
-	}
-
+	public function clearAllNotes():Void
+{
+    // 清理已生成的notes
+    while (notes.length > 0)
+    {
+        var daNote:Note = notes.members[0];
+        daNote.active = false;
+        daNote.visible = false;
+        invalidateNote(daNote);
+    }
+    // 清理未生成的notes
+    unspawnNotes = [];
+}
 }

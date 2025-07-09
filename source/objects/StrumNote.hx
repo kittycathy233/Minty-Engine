@@ -74,14 +74,31 @@ class StrumNote extends FlxSprite
 	public function reloadNote()
 	{
 		var lastAnim:String = null;
-		if (animation.curAnim != null)
-			lastAnim = animation.curAnim.name;
+		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 
-		if (PlayState.isPixelStage)
+		if(PlayState.isPixelStage)
 		{
-			// ...省略...
+			loadGraphic(Paths.image('pixelUI/' + texture));
+			width = width / 6;
+			height = height / 5;
+			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
+
+			antialiasing = false;
+
+			initialWidth = width;
+			//trace(initialWidth);
+
+			setGraphicSize(width * PlayState.daPixelZoom);
+
 			var noteAnimInt = getAnimSet(getIndex(noteData)).pixel;
-			// ...省略...
+
+			animation.add('circle', [11]);
+			animation.add('rombus', [10]);
+			animation.add('red', [9]);
+			animation.add('green', [8]);
+			animation.add('blue', [7]);
+			animation.add('purple', [6]);
+
 			animation.add('static', [noteAnimInt]);
 			animation.add('pressed', [noteAnimInt + 6, noteAnimInt + 12], 12, false);
 			animation.add('confirm', [noteAnimInt + 18, noteAnimInt + 24], 24, false);
@@ -89,8 +106,6 @@ class StrumNote extends FlxSprite
 		else
 		{
 			frames = Paths.getSparrowAtlas(texture);
-			// 动态获取动画名
-			var animSet = getAnimSet(getIndex(noteData));
 			animation.addByPrefix('green', 'arrowUP');
 			animation.addByPrefix('blue', 'arrowDOWN');
 			animation.addByPrefix('purple', 'arrowLEFT');
@@ -102,13 +117,13 @@ class StrumNote extends FlxSprite
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(width * trackedScale);
 
-			animation.addByPrefix('static', 'arrow${animSet.strum}');
-			animation.addByPrefix('pressed', '${animSet.anim} press', 24, false);
-			animation.addByPrefix('confirm', '${animSet.anim} confirm', 24, false);
+			animation.addByPrefix('static', 'arrow${getAnimSet(getIndex(noteData)).strum}');
+			animation.addByPrefix('pressed', '${getAnimSet(getIndex(noteData)).anim} press', 24, false);
+			animation.addByPrefix('confirm', '${getAnimSet(getIndex(noteData)).anim} confirm', 24, false);
 		}
 		updateHitbox();
 
-		if (lastAnim != null)
+		if(lastAnim != null)
 		{
 			playAnim(lastAnim, true);
 		}

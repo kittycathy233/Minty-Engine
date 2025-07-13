@@ -18,6 +18,7 @@ typedef SwagSong =
 	var player2:String;
 	var gfVersion:String;
 	var stage:String;
+	var format:String;
 
 	@:optional var mania:Int;
 
@@ -30,6 +31,10 @@ typedef SwagSong =
 
 	@:optional var arrowSkin:String;
 	@:optional var splashSkin:String;
+
+	@:optional var specialInst:String;
+    @:optional var specialVocal:String;
+    //@:optional var specialVocalOpp:String;
 }
 
 class Song
@@ -51,6 +56,11 @@ class Song
 	public var player1:String = 'bf';
 	public var player2:String = 'dad';
 	public var gfVersion:String = 'gf';
+
+	public var format:String = 'mrek_v0.0.1';
+	public var specialInst:String;
+	public var specialVocal:String;
+	//public var specialVocalOpp:String;
 
 	private static function onLoadJson(songJson:Dynamic) // Convert old charts to newest format
 	{

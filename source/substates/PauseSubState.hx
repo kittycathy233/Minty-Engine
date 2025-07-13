@@ -78,19 +78,53 @@ class PauseSubState extends MusicBeatSubstate
 		bg.scrollFactor.set();
 		add(bg);
 
-		var levelInfo:FlxText = new FlxText(20, 15, 0, PlayState.SONG.song, 32);
+		var levelInfo:FlxText = new FlxText(20, 15, 0, 'SONG: ${PlayState.SONG.song}', 32);
 		levelInfo.scrollFactor.set();
 		levelInfo.setFormat(Paths.font("vcr.ttf"), 32);
 		levelInfo.updateHitbox();
 		add(levelInfo);
+		
+		// 添加specialInst和specialVocal输出
+		var specialInstText:FlxText = new FlxText(20, 15 + 32, 0, 'SPECIAL INST: ${PlayState.SONG.specialInst != null ? PlayState.SONG.specialInst : "None"}', 24);
+		specialInstText.scrollFactor.set();
+		specialInstText.setFormat(Paths.font("vcr.ttf"), 24);
+		specialInstText.updateHitbox();
+		add(specialInstText);
+		
+		var specialVocalText:FlxText = new FlxText(20, 15 + 56, 0, 'SPECIAL VOCAL: ${PlayState.SONG.specialVocal != null ? PlayState.SONG.specialVocal : "None"}', 24);
+		specialVocalText.scrollFactor.set();
+		specialVocalText.setFormat(Paths.font("vcr.ttf"), 24);
+		specialVocalText.updateHitbox();
+		add(specialVocalText);
 
-		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0, Difficulty.getString().toUpperCase(), 32);
+		// 调整下方文本的垂直位置
+		var levelDifficulty:FlxText = new FlxText(20, 15 + 80, 0, Difficulty.getString().toUpperCase(), 32);
 		levelDifficulty.scrollFactor.set();
 		levelDifficulty.setFormat(Paths.font('vcr.ttf'), 32);
 		levelDifficulty.updateHitbox();
 		add(levelDifficulty);
+		
+		// 将bpmText、speedText和formatText移动到难度文本下方
+		var bpmText:FlxText = new FlxText(20, 15 + 112, 0, 'BPM: ${Conductor.bpm}', 32);
+		bpmText.scrollFactor.set();
+		bpmText.setFormat(Paths.font('vcr.ttf'), 32);
+		bpmText.updateHitbox();
+		add(bpmText);
 
-		var blueballedTxt:FlxText = new FlxText(20, 15 + 64, 0, "Blueballed: " + PlayState.deathCounter, 32);
+		var speedText:FlxText = new FlxText(20, 15 + 144, 0, 'NOTE SPEED: ${PlayState.instance.songSpeed}x${PlayState.SONG.speed != PlayState.instance.songSpeed ? ' (${PlayState.SONG.speed}x)' : ''}', 32);
+		speedText.scrollFactor.set();
+		speedText.setFormat(Paths.font('vcr.ttf'), 32);
+		speedText.updateHitbox();
+		add(speedText);
+
+		var formatText:FlxText = new FlxText(20, 15 + 176, 0, 'CHART FORMAT: ${PlayState.SONG.format}', 32);
+		formatText.scrollFactor.set();
+		formatText.setFormat(Paths.font('vcr.ttf'), 32);
+		formatText.updateHitbox();
+		add(formatText);
+
+		// 将blueballedTxt移动到这些文本下方
+		var blueballedTxt:FlxText = new FlxText(20, 15 + 208, 0, "RETRIED: " + PlayState.deathCounter, 32);
 		blueballedTxt.scrollFactor.set();
 		blueballedTxt.setFormat(Paths.font('vcr.ttf'), 32);
 		blueballedTxt.updateHitbox();
@@ -100,6 +134,7 @@ class PauseSubState extends MusicBeatSubstate
 		practiceText.scrollFactor.set();
 		practiceText.setFormat(Paths.font('vcr.ttf'), 32);
 		practiceText.x = FlxG.width - (practiceText.width + 20);
+		practiceText.y = FlxG.height - (practiceText.height + 20) - 60;
 		practiceText.updateHitbox();
 		practiceText.visible = PlayState.instance.practiceMode;
 		add(practiceText);
@@ -116,15 +151,31 @@ class PauseSubState extends MusicBeatSubstate
 		blueballedTxt.alpha = 0;
 		levelDifficulty.alpha = 0;
 		levelInfo.alpha = 0;
+		bpmText.alpha = 0;
+		speedText.alpha = 0;
+		formatText.alpha = 0;
+		specialInstText.alpha = 0;
+		specialVocalText.alpha = 0;
 
 		levelInfo.x = FlxG.width - (levelInfo.width + 20);
 		levelDifficulty.x = FlxG.width - (levelDifficulty.width + 20);
+		bpmText.x = FlxG.width - (bpmText.width + 20);
+		speedText.x = FlxG.width - (speedText.width + 20);
+		formatText.x = FlxG.width - (formatText.width + 20);
 		blueballedTxt.x = FlxG.width - (blueballedTxt.width + 20);
+		specialInstText.x = FlxG.width - (specialInstText.width + 20);
+		specialVocalText.x = FlxG.width - (specialVocalText.width + 20);
 
+		// 加快所有信息文本的动画速度
 		FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
-		FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
-		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
-		FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
+		FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.1});
+		FlxTween.tween(specialInstText, {alpha: 1, y: specialInstText.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.15});
+		FlxTween.tween(specialVocalText, {alpha: 1, y: specialVocalText.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.2});
+		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.25});
+		FlxTween.tween(bpmText, {alpha: 1, y: bpmText.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.3});
+		FlxTween.tween(speedText, {alpha: 1, y: speedText.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.35});
+		FlxTween.tween(formatText, {alpha: 1, y: formatText.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.4});
+		FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.3, {ease: FlxEase.quartInOut, startDelay: 0.45});
 
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);

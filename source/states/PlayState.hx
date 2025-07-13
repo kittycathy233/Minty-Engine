@@ -1627,7 +1627,9 @@ class PlayState extends MusicBeatState
 	{
 		// 在加载事件之后
 		totalEvents = eventNotes.length; // 记录总事件数
-		// FlxG.log.add(ChartParser.parse());
+		var exInst:String = SONG.specialInst;
+		var exVocals:String = SONG.specialVocal;
+
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
 		switch (songSpeedType)
@@ -1640,51 +1642,216 @@ class PlayState extends MusicBeatState
 
 		var songData = SONG;
 		Conductor.bpm = songData.bpm;
-
 		curSong = songData.song;
 
 		vocals = new FlxSound();
 		opponentVocals = new FlxSound();
+
 		try
 		{
 			if (songData.needsVoices)
 			{
-				var playerVocals = Paths.voices(songData.song,
-					(boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song));
+				var specialVocals:String = (exVocals != null && exVocals.length > 0) ? exVocals : null;
+				var specialInst:String = (songData.specialVocal != null && songData.specialVocal.length > 0) ? songData.specialVocal : null;
+				var special:String = (specialVocals != null) ? specialVocals : specialInst;
 
-				var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-				if (oppVocals != null)
-					opponentVocals.loadEmbedded(oppVocals);
+				// 玩家声音加载逻辑
+				var playerVocalFile:String = (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile;
+				var playerVocals:Any = null;
+				var loadedPlayerVocals:Bool = false;
+
+				trace('--- Loading PLAYER vocals ---');
+				trace('Song: ${songData.song}');
+				trace('Special vocal version: $special');
+				trace('Player vocal file: $playerVocalFile');
+
+				if (!loadedPlayerVocals && special != null && special.length > 0)
+				{
+					var path1 = '${songData.song}/Voices-${special}-${playerVocalFile}';
+					trace('Trying path: $path1');
+					playerVocals = Paths.voices(songData.song, playerVocalFile, special);
+					if (playerVocals != null)
+					{
+						trace('SUCCESS: Loaded player vocals from specific character file');
+						vocals.loadEmbedded(playerVocals);
+						loadedPlayerVocals = true;
+					}
+				}
+
+				if (!loadedPlayerVocals && special != null && special.length > 0)
+				{
+					var path2 = '${songData.song}/Voices-${special}';
+					trace('Not found, trying path: $path2');
+					playerVocals = Paths.voices(songData.song, null, special);
+					if (playerVocals != null)
+					{
+						trace('SUCCESS: Loaded player vocals from special version');
+						vocals.loadEmbedded(playerVocals);
+						loadedPlayerVocals = true;
+					}
+				}
+
+				if (!loadedPlayerVocals)
+				{
+					var path3 = '${songData.song}/Voices-${playerVocalFile}';
+					trace('Not found, trying path: $path3');
+					playerVocals = Paths.voices(songData.song, playerVocalFile, null);
+					if (playerVocals != null)
+					{
+						trace('SUCCESS: Loaded player vocals from character file');
+						vocals.loadEmbedded(playerVocals);
+						loadedPlayerVocals = true;
+					}
+				}
+
+				if (!loadedPlayerVocals && (special == null || special.length == 0))
+				{
+					var path4 = '${songData.song}/Voices';
+					trace('Not found, trying default path: $path4');
+					playerVocals = Paths.voices(songData.song, null, null);
+					if (playerVocals != null)
+					{
+						trace('SUCCESS: Loaded default player vocals');
+						vocals.loadEmbedded(playerVocals);
+					}
+					else
+					{
+						trace('ERROR: Failed to load player vocals');
+					}
+				}
+
+				// 对手声音加载逻辑
+				var oppVocalFile:String = (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile;
+				var oppVocals:Any = null;
+				var loadedOpponentVocals:Bool = false;
+
+				trace('\n--- Loading OPPONENT vocals ---');
+				trace('Song: ${songData.song}');
+				trace('Special vocal version: $special');
+				trace('Opponent vocal file: $oppVocalFile');
+
+				if (!loadedOpponentVocals && special != null && special.length > 0)
+				{
+					var path1 = '${songData.song}/Voices-${special}-${oppVocalFile}';
+					trace('Trying path: $path1');
+					oppVocals = Paths.voices(songData.song, oppVocalFile, special);
+					if (oppVocals != null)
+					{
+						trace('SUCCESS: Loaded opponent vocals from specific character file');
+						opponentVocals.loadEmbedded(oppVocals);
+						loadedOpponentVocals = true;
+					}
+				}
+
+				if (!loadedOpponentVocals && special != null && special.length > 0)
+				{
+					var path2 = '${songData.song}/Voices-${special}';
+					trace('Not found, trying path: $path2');
+					oppVocals = Paths.voices(songData.song, null, special);
+					if (oppVocals != null)
+					{
+						trace('SUCCESS: Loaded opponent vocals from special version');
+						opponentVocals.loadEmbedded(oppVocals);
+						loadedOpponentVocals = true;
+					}
+				}
+
+				if (!loadedOpponentVocals)
+				{
+					var path3 = '${songData.song}/Voices-${oppVocalFile}';
+					trace('Not found, trying path: $path3');
+					oppVocals = Paths.voices(songData.song, oppVocalFile, null);
+					if (oppVocals != null)
+					{
+						trace('SUCCESS: Loaded opponent vocals from character file');
+						opponentVocals.loadEmbedded(oppVocals);
+						loadedOpponentVocals = true;
+					}
+				}
+
+				if (!loadedOpponentVocals && (special == null || special.length == 0))
+				{
+					var path4 = '${songData.song}/Voices';
+					trace('Not found, trying default path: $path4');
+					oppVocals = Paths.voices(songData.song, null, null);
+					if (oppVocals != null)
+					{
+						trace('SUCCESS: Loaded default opponent vocals');
+						opponentVocals.loadEmbedded(oppVocals);
+					}
+					else
+					{
+						trace('ERROR: Failed to load opponent vocals');
+					}
+				}
 			}
 		}
 		catch (e:Dynamic)
 		{
+			trace('CRITICAL ERROR: Could not load vocals for song: ${songData.song} - ${e}');
+			trace(e.stack);
 		}
 
 		#if FLX_PITCH
 		vocals.pitch = playbackRate;
 		opponentVocals.pitch = playbackRate;
 		#end
+
 		FlxG.sound.list.add(vocals);
 		FlxG.sound.list.add(opponentVocals);
 
 		inst = new FlxSound();
+		// 背景音乐 (inst) 加载逻辑
 		try
 		{
-			inst.loadEmbedded(Paths.inst(songData.song));
+			var specialInstPath:String = songData.specialInst;
+			var instLoaded:Bool = false;
+
+			if (specialInstPath != null && specialInstPath.length > 0)
+			{
+				// 尝试加载带有特殊版本的乐器音轨
+				var pathSpecialInst = '${songData.song}/Inst-${specialInstPath}';
+				trace('Trying to load special instrument track: $pathSpecialInst');
+				try
+				{
+					inst.loadEmbedded(Paths.inst(songData.song, specialInstPath));
+					instLoaded = true;
+					trace('SUCCESS: Loaded special instrument track.');
+				}
+				catch (e:Dynamic)
+				{
+					trace('ERROR: Failed to load special instrument track - ${e}');
+				}
+			}
+
+			if (!instLoaded)
+			{
+				// 如果没有成功加载特殊版本的乐器音轨，尝试加载默认的乐器音轨
+				var pathDefaultInst = '${songData.song}/Inst';
+				trace('Not found, trying default instrument track: $pathDefaultInst');
+				try
+				{
+					inst.loadEmbedded(Paths.inst(songData.song, null));
+					trace('SUCCESS: Loaded default instrument track.');
+				}
+				catch (e:Dynamic)
+				{
+					trace('ERROR: Failed to load default instrument track - ${e}');
+				}
+			}
 		}
 		catch (e:Dynamic)
 		{
+			trace('CRITICAL ERROR: Could not load instrument track for song: ${songData.song} - ${e}');
+			trace(e.stack);
 		}
+
 		FlxG.sound.list.add(inst);
 
 		notes = new FlxTypedGroup<Note>();
 		noteGroup.add(notes);
 
 		var noteData:Array<SwagSection>;
-
-		// NEW SHIT
 		noteData = songData.notes;
 
 		var file:String = Paths.json(songName + '/events');
@@ -1725,7 +1892,7 @@ class PlayState extends MusicBeatState
 				swagNote.gfNote = (section.gfSection && (songNotes[1] < (SONG.mania + 1)));
 				swagNote.noteType = songNotes[3];
 				if (!Std.isOfType(songNotes[3], String))
-					swagNote.noteType = ChartingState.noteTypeList[songNotes[3]]; // Backward compatibility + compatibility with Week 7 charts
+					swagNote.noteType = ChartingState.noteTypeList[songNotes[3]];
 
 				swagNote.scrollFactor.set();
 
@@ -1750,6 +1917,7 @@ class PlayState extends MusicBeatState
 						swagNote.tail.push(sustainNote);
 
 						sustainNote.correctionOffset = swagNote.height / 2;
+
 						if (!PlayState.isPixelStage)
 						{
 							if (oldNote.isSustainNote)
@@ -1769,11 +1937,11 @@ class PlayState extends MusicBeatState
 						}
 
 						if (sustainNote.mustPress)
-							sustainNote.x += FlxG.width / 2; // general offset
+							sustainNote.x += FlxG.width / 2;
 						else if (ClientPrefs.data.middleScroll)
 						{
 							sustainNote.x += 310;
-							if (daNoteData > 1) // Up and Right
+							if (daNoteData > 1)
 								sustainNote.x += FlxG.width / 2 + 25;
 						}
 					}
@@ -1781,12 +1949,12 @@ class PlayState extends MusicBeatState
 
 				if (swagNote.mustPress)
 				{
-					swagNote.x += FlxG.width / 2; // general offset
+					swagNote.x += FlxG.width / 2;
 				}
 				else if (ClientPrefs.data.middleScroll)
 				{
 					swagNote.x += 310;
-					if (daNoteData > 1) // Up and Right
+					if (daNoteData > 1)
 					{
 						swagNote.x += FlxG.width / 2 + 25;
 					}
@@ -1798,6 +1966,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
+
 		for (event in songData.events) // Event Notes
 			for (i in 0...event[1].length)
 				makeEvent(event, i);
@@ -3009,11 +3178,9 @@ class PlayState extends MusicBeatState
 				{
 					FlxG.log.warn('has error to change Mania: ' + value1);
 				}
+			case 'Change Zoom':
+				trace('我还没改hhh');
 
-
-
-
-		
 			case 'Change Scroll Speed':
 				if (songSpeedType != "constant")
 				{
@@ -3068,7 +3235,7 @@ class PlayState extends MusicBeatState
 			case 'Change Window Title':
 				if (value1 == null || value1.trim() == '')
 				{
-					Application.current.window.title = 'Friday Night Funkin\': MintRhythm Engine'; // 空值时恢复默认
+					Application.current.window.title = 'PE: EK: M.R.Extended'; // 空值时恢复默认
 				}
 				else
 				{

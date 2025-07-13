@@ -162,6 +162,17 @@ class FreeplayState extends MusicBeatState
 		intendedColor = bg.color;
 		lerpSelected = curSelected;
 
+		// 添加初始窗口标题栏颜色设置
+		#if windows
+		var colorArray = [
+			(intendedColor >> 16) & 0xFF, // R
+			(intendedColor >> 8) & 0xFF, // G
+			intendedColor & 0xFF // B
+		];
+		WindowColorMode.setWindowBorderColor(colorArray, true, false);
+		//WindowColorMode.redrawWindowHeader();
+		#end
+
 		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
 // 在 create() 中找到滚动条创建部分替换为：
 scrollBarBG = new FlxSprite(FlxG.width - 28, 50).makeGraphic(12, FlxG.height - 150, 0xFF444444);
@@ -353,7 +364,7 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 					vocals = null;
 				}
 
-				FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 0.8);
+				FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song, Std.string(PlayState.SONG.specialInst)), 0.8);
 				if(vocals != null) //Sync vocals to Inst
 				{
 					vocals.play();
@@ -535,6 +546,16 @@ super.update(elapsed);
 					colorTween = null;
 				}
 			});
+			// 添加初始窗口标题栏颜色设置
+			#if windows
+			var colorArray = [
+				(intendedColor >> 16) & 0xFF, // R
+				(intendedColor >> 8) & 0xFF, // G
+				intendedColor & 0xFF // B
+			];
+			WindowColorMode.setWindowBorderColor(colorArray, true, false);
+			//WindowColorMode.redrawWindowHeader();
+			#end
 		}
 
 		// selector.y = (70 * curSelected) + 30;

@@ -81,16 +81,28 @@ class LoadingState extends MusicBeatState
 	
 	function checkLoadSong(path:String)
 	{
+		// 添加缓存检查，避免重复加载
+		if (path == null || path.length == 0)
+			return;
+
 		if (!Assets.cache.hasSound(path))
 		{
 			var library = Assets.getLibrary("songs");
 			final symbolPath = path.split(":").pop();
-			 @:privateAccess
-			 library.types.set(symbolPath, SOUND);
-			 @:privateAccess
-			 library.pathGroups.set(symbolPath, [library.__cacheBreak(symbolPath)]);
-			var callback = callbacks.add("song:" + path);
-			Assets.loadSound(path).onComplete(function (_) { callback(); });
+			@:privateAccess
+			if (!library.types.exists(symbolPath))
+			{
+				@:privateAccess
+				library.types.set(symbolPath, SOUND);
+				@:privateAccess
+				library.pathGroups.set(symbolPath, [library.__cacheBreak(symbolPath)]);
+
+				var callback = callbacks.add("song:" + path);
+				Assets.loadSound(path).onComplete(function(_)
+				{
+					callback();
+				});
+			}
 		}
 	}
 	
@@ -136,12 +148,12 @@ class LoadingState extends MusicBeatState
 		}	
 	static function getSongPath()
 	{
-		return Paths.inst(PlayState.SONG.song);
+		return Paths.inst(PlayState.SONG.song, Std.string(PlayState.SONG.specialInst));
 	}
 	
 	static function getVocalPath()
 	{
-		return Paths.voices(PlayState.SONG.song);
+		return Paths.voices(PlayState.SONG.song, null, Std.string(PlayState.SONG.specialVocal));
 	}
 	
 	inline static public function loadAndSwitchState(target:FlxState, stopMusic = false)

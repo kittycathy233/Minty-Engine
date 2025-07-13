@@ -84,7 +84,8 @@ class ChartingState extends MusicBeatState
 		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"],
 		['Change Window Title', "Value 1: Title name"],
 		['Change icon', "Value 1: Dad icon\nValue2: BF icon"],
-		['Change Mania', "Value 1: New mania number (e.g. 4)"]
+		['Change Mania', "Value 1: New mania number (e.g. 4)"],
+		['Change Zoom', "TEST"]
 	];
 
 	var _file:FileReference;
@@ -162,6 +163,10 @@ class ChartingState extends MusicBeatState
 	private var uiBoxLerpRatio:Float = 0.15; // 插值比例 (0.1-0.5之间更丝滑)
 	private var uiBoxX:Float = 0; // UI Box的宽度
 
+	var specialInstInputText:FlxUIInputText;
+	var specialVocalInputText:FlxUIInputText;
+	//var specialVocalOppInputText:FlxUIInputText;
+
 	var zoomList:Array<Float> = [
 		0.25,
 		0.5,
@@ -229,7 +234,8 @@ class ChartingState extends MusicBeatState
 				player2: 'dad',
 				gfVersion: 'gf',
 				speed: 1,
-				stage: 'stage'
+				stage: 'stage',
+				format: 'mrek_v0.0.1'
 			};
 			addSection();
 			PlayState.SONG = _song;
@@ -345,7 +351,7 @@ class ChartingState extends MusicBeatState
 
 		UI_box = new FlxUITabMenu(null, tabs, true);
 
-		UI_box.resize(320, 400);
+		UI_box.resize(350, 400);
 		UI_box.x = FlxG.width - UI_box.width - 30;
 		UI_box.y = FlxG.height / 2 - UI_box.height / 2;
 		UI_box.scrollFactor.set();
@@ -388,6 +394,12 @@ class ChartingState extends MusicBeatState
 			tipText.scrollFactor.set();
 			add(tipText);
 		}
+
+		var tips2:FlxText = new FlxText(FlxG.width - 410, FlxG.height - 50, 400, "Press F3 to Hide/Show Charting Box\nPress F2 for Help", 16);
+		tips2.setFormat(Paths.font("arturito-slab.ttf"), 16, FlxColor.WHITE, RIGHT);
+		tips2.scrollFactor.set();
+		add(tips2);
+
 		add(UI_box);
 
 		addSongUI();
@@ -651,7 +663,7 @@ class ChartingState extends MusicBeatState
 		tab_group_song.add(stepperSpeed);
 		tab_group_song.add(stepperMania);
 		tab_group_song.add(new FlxText(stepperBPM.x, stepperBPM.y - 15, 0, 'Song BPM:'));
-		tab_group_song.add(new FlxText(stepperBPM.x + 100, stepperBPM.y - 15, 0, 'Song Offset:'));
+		tab_group_song.add(new FlxText(stepperBPM.x + 75, stepperBPM.y - 15, 0, 'Song Offset:\nIn Development...'));
 		tab_group_song.add(new FlxText(stepperSpeed.x, stepperSpeed.y - 15, 0, 'Song Speed:'));
 		tab_group_song.add(new FlxText(stepperMania.x, stepperMania.y - 15, 0, 'Mania:'));
 		tab_group_song.add(new FlxText(player2DropDown.x, player2DropDown.y - 15, 0, 'Opponent:'));
@@ -662,6 +674,30 @@ class ChartingState extends MusicBeatState
 		tab_group_song.add(gfVersionDropDown);
 		tab_group_song.add(player1DropDown);
 		tab_group_song.add(stageDropDown);
+
+		var text:FlxText = new FlxText(300, 90, 0, "Special Inst:");
+		tab_group_song.add(text);
+		specialInstInputText = new FlxUIInputText(300, 110, 70, "");
+		blockPressWhileTypingOn.push(specialInstInputText);
+		//specialInstInputText.text = _song.specialInst;
+		specialInstInputText.text = _song.specialInst != null ? _song.specialInst : "";
+		var text:FlxText = new FlxText(300, 140, 0, "Special Voices:");
+		tab_group_song.add(text);
+		specialVocalInputText = new FlxUIInputText(300, 160, 70, "");
+		blockPressWhileTypingOn.push(specialVocalInputText);
+		//specialVocalInputText.text = _song.specialVocal;
+		specialVocalInputText.text = _song.specialVocal != null ? _song.specialVocal : "";
+
+		/*	var text:FlxText = new FlxText(300, 190, 0, "Special Opp. Voices:");
+		tab_group_song.add(text);
+		specialVocalOppInputText = new FlxUIInputText(300, 210, 70, "");
+		blockPressWhileTypingOn.push(specialVocalOppInputText);
+		//specialVocalOppInputText.text = _song.specialVocalOpp;
+		specialVocalOppInputText.text = _song.specialVocalOpp != null ? _song.specialVocalOpp : "";
+		*/
+		tab_group_song.add(specialInstInputText);
+		tab_group_song.add(specialVocalInputText);
+		//tab_group_song.add(specialVocalOppInputText);
 
 		UI_box.addGroup(tab_group_song);
 
@@ -1475,15 +1511,15 @@ class ChartingState extends MusicBeatState
 
 	function loadSong():Void
 	{
-		if(FlxG.sound.music != null)
+		if (FlxG.sound.music != null)
 			FlxG.sound.music.stop();
 
-		if(vocals != null)
+		if (vocals != null)
 		{
 			vocals.stop();
 			vocals.destroy();
 		}
-		if(opponentVocals != null)
+		if (opponentVocals != null)
 		{
 			opponentVocals.stop();
 			opponentVocals.destroy();
@@ -1491,19 +1527,164 @@ class ChartingState extends MusicBeatState
 
 		vocals = new FlxSound();
 		opponentVocals = new FlxSound();
+
+		// 获取特殊版本参数
+		var specialVocals:String = (_song.specialVocal != null && _song.specialVocal.length > 0) ? _song.specialVocal : null;
+
+		// 玩家声音加载逻辑
 		try
 		{
-			var playerVocals = Paths.voices(currentSongName, (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'Player' : characterData.vocalsP1);
-			vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(currentSongName));
+			var playerVocalFile:String = (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'Player' : characterData.vocalsP1;
+			var playerVocals:Any = null;
+			var loadedPlayerVocals:Bool = false; // 标记是否已加载特定角色的人声
+
+			trace('--- [CHARTING] Loading PLAYER vocals ---');
+			trace('Song: $currentSongName');
+			trace('Special vocal version: $specialVocals');
+			trace('Player vocal file: $playerVocalFile');
+
+			// 尝试加载带特殊版本和玩家后缀的文件
+			if (!loadedPlayerVocals && specialVocals != null && specialVocals.length > 0)
+			{
+				var path1 = '$currentSongName/Voices-${specialVocals}-${playerVocalFile}';
+				trace('Trying path: $path1');
+				playerVocals = Paths.voices(currentSongName, playerVocalFile, specialVocals);
+				if (playerVocals != null)
+				{
+					trace('SUCCESS: Loaded player vocals from specific character file');
+					vocals.loadEmbedded(playerVocals);
+					loadedPlayerVocals = true;
+				}
+			}
+
+			// 如果未找到，尝试加载不带玩家后缀的特殊版本
+			if (!loadedPlayerVocals && specialVocals != null && specialVocals.length > 0)
+			{
+				var path2 = '$currentSongName/Voices-${specialVocals}';
+				trace('Not found, trying path: $path2');
+				playerVocals = Paths.voices(currentSongName, null, specialVocals);
+				if (playerVocals != null)
+				{
+					trace('SUCCESS: Loaded player vocals from special version');
+					vocals.loadEmbedded(playerVocals);
+					loadedPlayerVocals = true;
+				}
+			}
+
+			// 如果仍未找到，尝试加载带玩家后缀的默认版本
+			if (!loadedPlayerVocals)
+			{
+				var path3 = '$currentSongName/Voices-${playerVocalFile}';
+				trace('Not found, trying path: $path3');
+				playerVocals = Paths.voices(currentSongName, playerVocalFile, null);
+				if (playerVocals != null)
+				{
+					trace('SUCCESS: Loaded player vocals from character file');
+					vocals.loadEmbedded(playerVocals);
+					loadedPlayerVocals = true;
+				}
+			}
+
+			// 最后尝试加载默认版本（仅当未找到特定角色文件时）
+			if (!loadedPlayerVocals)
+			{
+				var path4 = '$currentSongName/Voices';
+				trace('Not found, trying default path: $path4');
+				playerVocals = Paths.voices(currentSongName, null, null);
+				if (playerVocals != null)
+				{
+					trace('SUCCESS: Loaded default player vocals');
+					vocals.loadEmbedded(playerVocals);
+				}
+				else
+				{
+					trace('ERROR: Failed to load player vocals');
+				}
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace('CRITICAL ERROR: Could not load PLAYER vocals for song: $currentSongName - ${e}');
+			trace(e.stack);
 		}
 		vocals.autoDestroy = false;
 		FlxG.sound.list.add(vocals);
 
-		opponentVocals = new FlxSound();
+		// 对手声音加载逻辑
 		try
 		{
-			var oppVocals = Paths.voices(currentSongName, (characterData.vocalsP2 == null || characterData.vocalsP2.length < 1) ? 'Opponent' : characterData.vocalsP2);
-			if(oppVocals != null) opponentVocals.loadEmbedded(oppVocals);
+			var oppVocalFile:String = (characterData.vocalsP2 == null || characterData.vocalsP2.length < 1) ? 'Opponent' : characterData.vocalsP2;
+			var oppVocals:Any = null;
+			var loadedOpponentVocals:Bool = false; // 标记是否已加载特定角色的人声
+
+			trace('\n--- [CHARTING] Loading OPPONENT vocals ---');
+			trace('Song: $currentSongName');
+			trace('Special vocal version: $specialVocals');
+			trace('Opponent vocal file: $oppVocalFile');
+
+			// 尝试加载带特殊版本和对手后缀的文件
+			if (!loadedOpponentVocals && specialVocals != null && specialVocals.length > 0)
+			{
+				var path1 = '$currentSongName/Voices-${specialVocals}-${oppVocalFile}';
+				trace('Trying path: $path1');
+				oppVocals = Paths.voices(currentSongName, oppVocalFile, specialVocals);
+				if (oppVocals != null)
+				{
+					trace('SUCCESS: Loaded opponent vocals from specific character file');
+					opponentVocals.loadEmbedded(oppVocals);
+					loadedOpponentVocals = true;
+				}
+			}
+
+			// 如果未找到，尝试加载不带对手后缀的特殊版本
+			if (!loadedOpponentVocals && specialVocals != null && specialVocals.length > 0)
+			{
+				var path2 = '$currentSongName/Voices-${specialVocals}';
+				trace('Not found, trying path: $path2');
+				oppVocals = Paths.voices(currentSongName, null, specialVocals);
+				if (oppVocals != null)
+				{
+					trace('SUCCESS: Loaded opponent vocals from special version');
+					opponentVocals.loadEmbedded(oppVocals);
+					loadedOpponentVocals = true;
+				}
+			}
+
+			// 如果仍未找到，尝试加载带对手后缀的默认版本
+			if (!loadedOpponentVocals)
+			{
+				var path3 = '$currentSongName/Voices-${oppVocalFile}';
+				trace('Not found, trying path: $path3');
+				oppVocals = Paths.voices(currentSongName, oppVocalFile, null);
+				if (oppVocals != null)
+				{
+					trace('SUCCESS: Loaded opponent vocals from character file');
+					opponentVocals.loadEmbedded(oppVocals);
+					loadedOpponentVocals = true;
+				}
+			}
+
+			// 最后尝试加载默认版本（仅当未找到特定角色文件时）
+			if (!loadedOpponentVocals)
+			{
+				var path4 = '$currentSongName/Voices';
+				trace('Not found, trying default path: $path4');
+				oppVocals = Paths.voices(currentSongName, null, null);
+				if (oppVocals != null)
+				{
+					trace('SUCCESS: Loaded default opponent vocals');
+					opponentVocals.loadEmbedded(oppVocals);
+				}
+				else
+				{
+					trace('ERROR: Failed to load opponent vocals');
+				}
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace('CRITICAL ERROR: Could not load OPPONENT vocals for song: $currentSongName - ${e}');
+			trace(e.stack);
 		}
 		opponentVocals.autoDestroy = false;
 		FlxG.sound.list.add(opponentVocals);
@@ -1514,11 +1695,11 @@ class ChartingState extends MusicBeatState
 		FlxG.sound.music.time = Conductor.songPosition;
 
 		var curTime:Float = 0;
-		//trace(_song.notes.length);
-		if(_song.notes.length <= 1) //First load ever
+		// trace(_song.notes.length);
+		if (_song.notes.length <= 1) // First load ever
 		{
 			trace('first load ever!!');
-			while(curTime < FlxG.sound.music.length)
+			while (curTime < FlxG.sound.music.length)
 			{
 				addSection();
 				curTime += (60 / _song.bpm) * 4000;
@@ -1564,7 +1745,7 @@ class ChartingState extends MusicBeatState
 	}
 
 	function generateSong() {
-		FlxG.sound.playMusic(Paths.inst(currentSongName), 0.6/*, false*/);
+		FlxG.sound.playMusic(Paths.inst(currentSongName, (_song.specialInst != null && _song.specialInst.length > 0) ? _song.specialInst : null), 0.6/*, false*/);
 		FlxG.sound.music.autoDestroy = false;
 		if (instVolume != null) FlxG.sound.music.volume = instVolume.value;
 		if (check_mute_inst != null && check_mute_inst.checked) FlxG.sound.music.volume = 0;
@@ -1693,9 +1874,16 @@ class ChartingState extends MusicBeatState
 			else if(sender == gameOverLoopInputText) {
 				_song.gameOverLoop = gameOverLoopInputText.text;
 			}
-			else if(sender == gameOverEndInputText) {
-				_song.gameOverEnd = gameOverEndInputText.text;
+			else if(sender == specialInstInputText) {
+				_song.specialInst = specialInstInputText.text;
 			}
+			else if(sender == specialVocalInputText) {
+				_song.specialVocal = specialVocalInputText.text;
+			}
+			//else if(sender == specialVocalOppInputText) {
+				//_song.specialVocalOpp = specialVocalOppInputText.text;
+				//trace('not done yet');
+			//}
 			else if(curSelectedNote != null)
 			{
 				if(sender == value1InputText) {
@@ -2397,7 +2585,11 @@ if (isMoving)
 				player2: 'bf',
 				gfVersion: 'bf',
 				speed: 1,
-				stage: 'stage'
+				stage: 'stage',
+				specialInst: "", // 添加默认值
+    			specialVocal: "", // 添加默认值
+				format: 'mrek_v0.0.1',
+   	 			//specialVocalOpp: "" // 添加默认值
 			};
 		} else {
 			PlayState.SONG.mania = _song.mania;

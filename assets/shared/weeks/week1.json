@@ -16,6 +16,7 @@
 	"weekBefore": "tutorial",
 	"weekName": "Week 1",
 	"startUnlocked": true,
+	"difficulties": "eazy, normal, hard, erect, nightmare, pico",
 
 	"hideStoryMode": false,
 	"hideFreeplay": false

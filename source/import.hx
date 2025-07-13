@@ -43,6 +43,10 @@ import states.LoadingState;
 import flxanimate.*;
 #end
 
+import winapi.WindowsAPI;
+import hxwindowmode.WindowColorMode;
+
+
 //Flixel
 import flixel.sound.FlxSound;
 import flixel.FlxG;

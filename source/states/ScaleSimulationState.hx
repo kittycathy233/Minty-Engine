@@ -128,7 +128,8 @@ class ScaleSimulationState extends MusicBeatState {
 				player2: 'bf',
 				gfVersion: 'bf',
 				speed: 1,
-				stage: 'stage'
+				stage: 'stage',
+                format: 'mrek_v0.0.1',
 			};
 
             generateStaticArrows(0);

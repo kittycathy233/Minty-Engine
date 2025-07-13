@@ -21,6 +21,7 @@ haxelib git SScript https://github.com/mcagabe19-stuff/SScript-7.7.0 main
 haxelib install hxCodec 3.0.2
 haxelib git flxanimate https://github.com/FunkinExtraKeys/flxanimate dev
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit master
-
+haxelib install sl-windows-api 1.1.0
+haxelib install hxWindowColorMode 0.2.0
 echo Finished!
 pause

@@ -62,7 +62,8 @@ class NotesSubState extends MusicBeatSubstate
 			player2: 'dad',
 			gfVersion: 'gf',
 			speed: 1,
-			stage: 'stage'
+			stage: 'stage',
+			format: 'mrek_v0.0.1'
 		};
 		
 		#if DISCORD_ALLOWED

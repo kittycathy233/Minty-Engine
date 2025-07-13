@@ -122,13 +122,14 @@ class Main extends Sprite
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 		//addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
 		addChild(game);
-// 启用全局抗锯齿
-FlxSprite.defaultAntialiasing = true;
-        
-#if !mobile
-// 设置高品质渲染
-Lib.current.stage.quality = openfl.display.StageQuality.HIGH;
-#end
+		// 启用全局抗锯齿
+		FlxSprite.defaultAntialiasing = true;
+
+		#if !mobile
+		// 设置高品质渲染
+		Lib.current.stage.quality = openfl.display.StageQuality.HIGH;
+		#end
+
 		#if !mobile
 		fpsVar = new FPSCounter(10, 10, 0xFFFFFF);
 		addChild(fpsVar);
@@ -158,6 +159,15 @@ Lib.current.stage.quality = openfl.display.StageQuality.HIGH;
 		DiscordClient.prepare();
 		#end
 
+		//WindowColorMode.setDarkMode();
+		WindowColorMode.setWindowBorderColor([135,206,250], true, false);
+		//WindowsAPI.setWindowBorderColor(135,206,250);
+		//WindowsAPI.setWindowOppacity(0.7);
+		//WindowsAPI.hideTaskbar(true);
+		//WindowsAPI.showMessageBox('Psych Engine', 'Welcome to Psych Engine! If you are new, please read the README.md file in the root folder of the game. If you are a developer, please read the CONTRIBUTING.md file in the root folder of the game.');
+		WindowsAPI.resetWindowsFuncs();
+		//WindowsAPI.sendWindowsNotification("你好", "这是MREK发送的一条通知");
+		
 		// shader coords fix
 		FlxG.signals.gameResized.add(function (w, h) {
 		     if (FlxG.cameras != null) {

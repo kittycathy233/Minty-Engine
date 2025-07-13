@@ -5,7 +5,7 @@
 	<app title="PE: EK: M.R.Extended" file="MintRhythmEK" packageName="com.kittycathy.mrek" package="com.kittycathy.mrek" main="Main" version="0.1.1" company="ShadowMario" />
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
-	<set name="APP_ID" value="0x0100f6c013bbc000" />
+	<set name="APP_ID" value="0x0100f6c013bbc114" />
 
 	<!-- NOTE TO SELF: DISABLE THIS IF ISSUES ARE FOUND -->
 	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB"/> <!-- stable luas PUT AFTER FIRST LINE WITH APP NAME AND ETC -->
@@ -36,7 +36,7 @@
 	<!-- ____________________________ Window Settings ___________________________ -->
 
 	<!--These window settings apply to all targets-->
-	<window width="1280" height="720" fps="60" background="#000000" hardware="true" vsync="false" />
+	<window width="1280" height="720" fps="120" background="#000000" hardware="true" vsync="false" allow-high-dpi="true"/>
 
 	<!--HTML5-specific-->
 	<window if="html5" resizable="true" />
@@ -181,10 +181,12 @@
 	<icon path="art/iconOG.png" />
 
 	<!-- _______________________________ Addons ______________________________ -->
-	<haxelib name="flxgif" />
-	<haxelib name="flxsvg" />
+	<haxelib name="flxgif" version="1.0.3"/>
+	<haxelib name="flxsvg" version="1.1.0"/>
 	<haxelib name="funkin.vis"/>
 	<haxelib name="grig.audio"/>
 	<haxelib name="extension-androidtools" />
-
+	<haxelib name="sl-windows-api" version="1.1.0"/>
+	<haxelib name="hxWindowColorMode" version="0.2.0"/>
+	
 </project>

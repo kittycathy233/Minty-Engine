@@ -46,7 +46,8 @@ import states.TitleState;
 	public var noReset:Bool = false;
 	public var healthBarAlpha:Float = 1;
 	public var hitsoundVolume:Float = 0;
-	public var pauseMusic:String = 'Tea Time';
+	//public var pauseMusic:String = 'Tea Time';
+	public var pauseMusic:String = 'Romantic Smile';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
 	public var gameplaySettings:Map<String, Dynamic> = [
@@ -95,7 +96,7 @@ import states.TitleState;
 	public var iconbopstyle:String = 'MintRhythm';
 	public var healthbarstyle:String = 'Psych';
 	public var ratingsAlpha:Float = 1;
-	public var customFadeStyle:String = 'Vanilla';
+	public var customFadeStyle:String = 'MintRhythm';
 	public var showRunningOS:Bool = true;
 	//NFE的特性
 	//public var CustomFadeSound:Bool = true;
@@ -110,7 +111,7 @@ import states.TitleState;
 	public var smoothHP:Bool = true;
 	public var forceSingleSplashAnim:Bool = false;
 	// 在ClientPrefs.hx的Settings类中添加
-	public var volumeTheme:String = "Archive"; // vanila, psych, archive
+	//public var volumeTheme:String = "Vanilla"; // vanila, psych, archive
 	public var cpuStrums: Bool = true;
 	public var tabiBar: Bool = true;
 	public var botplayStyle:String = "Kade"; // vanila, psych, archive
@@ -129,10 +130,10 @@ import states.TitleState;
 	public var eventDebug:Bool = true;
 	public var botplayScore:Bool = true;
 	public var systemCursor:Bool = false;
-	public var hudZoomStyle:String = "default";
+	public var hudZoomStyle:String = "Kade";
 	public var showNPS:Bool = true; // Show NPS in the ScoreTxt
 	public var showResultScreen:Bool = true; // Show the result screen after finishing a song
-	public var comboSprDisplay:Bool = false; //据说这是官方废稿，我不知道就是了
+	public var comboSprDisplay:Bool = false; //据说是官方废稿用的sprite，我不知道就是了
 
 
 }

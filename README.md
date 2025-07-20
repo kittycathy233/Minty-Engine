@@ -3,24 +3,29 @@ This branch is made specifically for the latest version of PE at the time (v0.7.
 
 to be updated
 
-# Friday Night Funkin' - MintRhythm Engine
+# Friday Night Funkin' - MintRhythm Extended
 
 Based on Psych EK Latest Build (v0.4.9), this engine draws inspiration from [Funk Archive](https://gamebanana.com/mods/496238) and aims to provide [Blue Archive](https://en.wikipedia.org/wiki/Blue_Archive) gamers with a more user-friendly UI and the integration of features from other PE branches.
 
 ## MintRhythm Members(?):
-* [KittyCathy](https://github.com/kittycathy233) - Programmer
+* [KittyCathy](https://github.com/kittycathy233) - Head of Mintrhythm 'Engine'
 
 ### Special Thanks:
-* NovaFlare Engine:[New](https://github.com/beihu235/FNF-NovaFlare-Engine) / [Legacy](https://github.com/beihu235/NovaFlare-Engine-V1.0.1)
-* [Kimi](https://kimi.moonshot.cn/)
+* NovaFlare Engine: [New](https://github.com/beihu235/FNF-NovaFlare-Engine) / [Legacy](https://github.com/beihu235/NovaFlare-Engine-V1.0.1)
+* 北狐我喜欢你
+* [Kimi](https://kimi.moonshot.cn/) (不好用)
 * [DeepSeek](https://www.deepseek.com/)
+* [OS Engine](https://github.com/notweuz/FNF-OSEngine)
+* [Slush Engine (API)](https://github.com/Slushi-Github/Slushi-Engine)
 
 # Friday Night Funkin' - Psych Engine
 Engine originally used on [Mind Games Mod](https://gamebanana.com/mods/301107), intended to be a fix for the vanilla version's many issues while keeping the casual play aspect of it. Also aiming to be an easier alternative to newbie coders.
 
 ## Installation:
 
-Refer to [the Build Instructions](./BUILDING.md)
+Refer to the Build Instructions ...
+[(Legacy)](./BUILDING.md)
+[(New)](./BUILDING2.md)
 
 ## Customization:
 

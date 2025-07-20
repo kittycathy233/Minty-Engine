@@ -43,8 +43,10 @@ import states.LoadingState;
 import flxanimate.*;
 #end
 
+#if desktop
 import winapi.WindowsAPI;
 import hxwindowmode.WindowColorMode;
+#end
 
 
 //Flixel

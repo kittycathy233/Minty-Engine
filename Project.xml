@@ -185,8 +185,8 @@
 	<haxelib name="flxsvg" version="1.1.0"/>
 	<haxelib name="funkin.vis"/>
 	<haxelib name="grig.audio"/>
-	<haxelib name="extension-androidtools" />
-	<haxelib name="sl-windows-api" version="1.1.0"/>
-	<haxelib name="hxWindowColorMode" version="0.2.0"/>
-	
+	<haxelib name="extension-androidtools" version="2.2.1"/>
+	<haxelib name="sl-windows-api" version="1.1.0"  if="desktop"/>
+	<haxelib name="hxWindowColorMode" version="0.2.0" if="desktop"/>
+
 </project>

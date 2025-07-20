@@ -213,8 +213,8 @@ class ChartingState extends MusicBeatState
 	{
 
 		if (Main.fpsVar != null) {
-    		Main.fpsVar.baseX = 1120; // 修改 X 坐标
-    		Main.fpsVar.x = 1120;     // 同时更新实际位置（可选）
+    		Main.fpsVar.baseX = FlxG.width - 160; // 修改 X 坐标
+    		Main.fpsVar.x = FlxG.width - 160;     // 同时更新实际位置（可选）
     		Main.fpsVar.charting = true; // 设置 charting 为 true
 		}
 
@@ -1540,43 +1540,35 @@ class ChartingState extends MusicBeatState
 
 			trace('--- [CHARTING] Loading PLAYER vocals ---');
 			trace('Song: $currentSongName');
-			trace('Special vocal version: $specialVocals');
+			trace('Special vocal version: ${specialVocals != null ? specialVocals : "NONE"}');
 			trace('Player vocal file: $playerVocalFile');
 
-			// 尝试加载带特殊版本和玩家后缀的文件
-			if (!loadedPlayerVocals && specialVocals != null && specialVocals.length > 0)
+			// ========== 优化后的加载逻辑 ==========
+			if (specialVocals != null && specialVocals.length > 0)
 			{
-				var path1 = '$currentSongName/Voices-${specialVocals}-${playerVocalFile}';
-				trace('Trying path: $path1');
-				playerVocals = Paths.voices(currentSongName, playerVocalFile, specialVocals);
+				// 特殊版本优先
+				playerVocals = tryLoadVocals(currentSongName, playerVocalFile, specialVocals);
 				if (playerVocals != null)
 				{
-					trace('SUCCESS: Loaded player vocals from specific character file');
+					trace('SUCCESS: Loaded player vocals from specific character file (special version)');
 					vocals.loadEmbedded(playerVocals);
 					loadedPlayerVocals = true;
 				}
-			}
-
-			// 如果未找到，尝试加载不带玩家后缀的特殊版本
-			if (!loadedPlayerVocals && specialVocals != null && specialVocals.length > 0)
-			{
-				var path2 = '$currentSongName/Voices-${specialVocals}';
-				trace('Not found, trying path: $path2');
-				playerVocals = Paths.voices(currentSongName, null, specialVocals);
-				if (playerVocals != null)
+				else
 				{
-					trace('SUCCESS: Loaded player vocals from special version');
-					vocals.loadEmbedded(playerVocals);
-					loadedPlayerVocals = true;
+					playerVocals = tryLoadVocals(currentSongName, null, specialVocals);
+					if (playerVocals != null)
+					{
+						trace('SUCCESS: Loaded player vocals from special version');
+						vocals.loadEmbedded(playerVocals);
+						loadedPlayerVocals = true;
+					}
 				}
 			}
-
-			// 如果仍未找到，尝试加载带玩家后缀的默认版本
-			if (!loadedPlayerVocals)
+			else
 			{
-				var path3 = '$currentSongName/Voices-${playerVocalFile}';
-				trace('Not found, trying path: $path3');
-				playerVocals = Paths.voices(currentSongName, playerVocalFile, null);
+				// 无特殊版本时优先加载带角色后缀的
+				playerVocals = tryLoadVocals(currentSongName, playerVocalFile, null);
 				if (playerVocals != null)
 				{
 					trace('SUCCESS: Loaded player vocals from character file');
@@ -1585,16 +1577,15 @@ class ChartingState extends MusicBeatState
 				}
 			}
 
-			// 最后尝试加载默认版本（仅当未找到特定角色文件时）
+			// 如果上述尝试都失败，加载默认人声
 			if (!loadedPlayerVocals)
 			{
-				var path4 = '$currentSongName/Voices';
-				trace('Not found, trying default path: $path4');
-				playerVocals = Paths.voices(currentSongName, null, null);
+				playerVocals = tryLoadVocals(currentSongName, null, null);
 				if (playerVocals != null)
 				{
-					trace('SUCCESS: Loaded default player vocals');
+					trace('SUCCESS: Loaded DEFAULT player vocals');
 					vocals.loadEmbedded(playerVocals);
+					loadedPlayerVocals = true;
 				}
 				else
 				{
@@ -1619,65 +1610,44 @@ class ChartingState extends MusicBeatState
 
 			trace('\n--- [CHARTING] Loading OPPONENT vocals ---');
 			trace('Song: $currentSongName');
-			trace('Special vocal version: $specialVocals');
+			trace('Special vocal version: ${specialVocals != null ? specialVocals : "NONE"}');
 			trace('Opponent vocal file: $oppVocalFile');
 
-			// 尝试加载带特殊版本和对手后缀的文件
-			if (!loadedOpponentVocals && specialVocals != null && specialVocals.length > 0)
+			// ========== 优化后的加载逻辑 ==========
+			if (specialVocals != null && specialVocals.length > 0)
 			{
-				var path1 = '$currentSongName/Voices-${specialVocals}-${oppVocalFile}';
-				trace('Trying path: $path1');
-				oppVocals = Paths.voices(currentSongName, oppVocalFile, specialVocals);
+				// 特殊版本优先
+				oppVocals = tryLoadVocals(currentSongName, oppVocalFile, specialVocals);
 				if (oppVocals != null)
 				{
-					trace('SUCCESS: Loaded opponent vocals from specific character file');
+					trace('SUCCESS: Loaded opponent vocals from specific character file (special version)');
 					opponentVocals.loadEmbedded(oppVocals);
 					loadedOpponentVocals = true;
 				}
-			}
-
-			// 如果未找到，尝试加载不带对手后缀的特殊版本
-			if (!loadedOpponentVocals && specialVocals != null && specialVocals.length > 0)
-			{
-				var path2 = '$currentSongName/Voices-${specialVocals}';
-				trace('Not found, trying path: $path2');
-				oppVocals = Paths.voices(currentSongName, null, specialVocals);
-				if (oppVocals != null)
+				else
 				{
-					trace('SUCCESS: Loaded opponent vocals from special version');
-					opponentVocals.loadEmbedded(oppVocals);
-					loadedOpponentVocals = true;
+					oppVocals = tryLoadVocals(currentSongName, null, specialVocals);
+					if (oppVocals != null)
+					{
+						trace('SUCCESS: Loaded opponent vocals from special version');
+						opponentVocals.loadEmbedded(oppVocals);
+						loadedOpponentVocals = true;
+					}
 				}
 			}
-
-			// 如果仍未找到，尝试加载带对手后缀的默认版本
-			if (!loadedOpponentVocals)
+			else
 			{
-				var path3 = '$currentSongName/Voices-${oppVocalFile}';
-				trace('Not found, trying path: $path3');
-				oppVocals = Paths.voices(currentSongName, oppVocalFile, null);
+				// 无特殊版本时只加载带角色后缀的
+				oppVocals = tryLoadVocals(currentSongName, oppVocalFile, null);
 				if (oppVocals != null)
 				{
 					trace('SUCCESS: Loaded opponent vocals from character file');
 					opponentVocals.loadEmbedded(oppVocals);
 					loadedOpponentVocals = true;
 				}
-			}
-
-			// 最后尝试加载默认版本（仅当未找到特定角色文件时）
-			if (!loadedOpponentVocals)
-			{
-				var path4 = '$currentSongName/Voices';
-				trace('Not found, trying default path: $path4');
-				oppVocals = Paths.voices(currentSongName, null, null);
-				if (oppVocals != null)
-				{
-					trace('SUCCESS: Loaded default opponent vocals');
-					opponentVocals.loadEmbedded(oppVocals);
-				}
 				else
 				{
-					trace('ERROR: Failed to load opponent vocals');
+					trace('NOTICE: No opponent vocals found, skipping');
 				}
 			}
 		}
@@ -1705,6 +1675,35 @@ class ChartingState extends MusicBeatState
 				curTime += (60 / _song.bpm) * 4000;
 			}
 		}
+	}
+
+	// ===== 新增的辅助函数 =====
+	private function tryLoadVocals(song:String, ?character:String, ?special:String):Any
+	{
+		var path:String = '$song/Voices';
+		if (special != null && special.length > 0)
+		{
+			path += '-${special}';
+		}
+		if (character != null && character.length > 0)
+		{
+			path += '-${character}';
+		}
+		trace('Trying path: $path');
+
+		try
+		{
+			var vocals = Paths.voices(song, character, special);
+			if (vocals != null)
+			{
+				return vocals;
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace('Error loading vocals: ${e}');
+		}
+		return null;
 	}
 
 	var playtesting:Bool = false;

@@ -1,7 +1,7 @@
 package;
 
-#if android
-import android.content.Context;
+#if (android && !macro)
+import extension.androidtools.content.Context;
 #end
 
 import debug.FPSCounter;
@@ -64,11 +64,11 @@ class Main extends Sprite
 		super();
 
 		// Credits to MAJigsaw77 (he's the og author for this code)
-		#if android
-		Sys.setCwd(Path.addTrailingSlash(Context.getExternalFilesDir()));
-		#elseif ios
-		Sys.setCwd(lime.system.System.applicationStorageDirectory);
-		#end
+		#if (android && !macro)
+   	 	Sys.setCwd(Path.addTrailingSlash(Context.getExternalFilesDir()));
+    	#elseif ios
+    	Sys.setCwd(lime.system.System.applicationStorageDirectory);
+    	#end
 
 		if (stage != null)
 		{
@@ -159,6 +159,7 @@ class Main extends Sprite
 		DiscordClient.prepare();
 		#end
 
+		#if desktop
 		//WindowColorMode.setDarkMode();
 		WindowColorMode.setWindowBorderColor([135,206,250], true, false);
 		//WindowsAPI.setWindowBorderColor(135,206,250);
@@ -167,6 +168,7 @@ class Main extends Sprite
 		//WindowsAPI.showMessageBox('Psych Engine', 'Welcome to Psych Engine! If you are new, please read the README.md file in the root folder of the game. If you are a developer, please read the CONTRIBUTING.md file in the root folder of the game.');
 		WindowsAPI.resetWindowsFuncs();
 		//WindowsAPI.sendWindowsNotification("你好", "这是MREK发送的一条通知");
+		#end
 		
 		// shader coords fix
 		FlxG.signals.gameResized.add(function (w, h) {

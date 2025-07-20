@@ -6,9 +6,9 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 {
 	var antialiasingOption:Int;
 	//var boyfriend:Character = null;
-	var arisDance:Int;
-	var aris:FlxGifSprite = null;
-	var arisTween:FlxTween;
+	var aronaScr:Int;
+	var arona:FlxGifSprite = null;
+	var aronaTween:FlxTween;
 	var warningText:FlxText; // 警告文本变量
 
 	public function new()
@@ -24,14 +24,14 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		boyfriend.visible = false;*/
 
 		// 初始化Ais动画
-		aris = new FlxGifSprite(0, 0);
-		aris.loadGif('assets/shared/images/aris.gif');
-		aris.setGraphicSize(Std.int(aris.width * 2.5));
-		aris.screenCenter();
-		aris.x = 1500;
-		aris.antialiasing = ClientPrefs.data.antialiasing;
-		aris.visible = true;
-		aris.alpha = 0.9;
+		arona = new FlxGifSprite(0, 0);
+		arona.loadGif('assets/shared/images/arona.gif');
+		arona.setGraphicSize(Std.int(arona.width * 2.5));
+		arona.screenCenter();
+		arona.x = 1500;
+		arona.antialiasing = ClientPrefs.data.antialiasing;
+		arona.visible = true;
+		arona.alpha = 0.9;
 
 		//I'd suggest using "Low Quality" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Low Quality', //Name
@@ -66,7 +66,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			'framerate',
 			'int');
 		addOption(option);
-		arisDance = optionsArray.length - 1;
+		aronaScr = optionsArray.length - 1;
 
 		final refreshRate:Int = FlxG.stage.application.window.displayMode.refreshRate;
 		option.minValue = 20;
@@ -78,7 +78,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		super();
 		//insert(1, boyfriend);
-		insert(3, aris);
+		insert(3, arona);
 
 		// 初始化警告文本
 		warningText = new FlxText(0, 50, FlxG.width - 40, "", 24);
@@ -117,26 +117,26 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	override function changeSelection(change:Int = 0)
 	{
 		// 安全清理之前的tween
-		if (arisTween != null)
+		if (aronaTween != null)
 		{
-			arisTween.cancel();
-			arisTween.destroy();
-			arisTween = null;
+			aronaTween.cancel();
+			aronaTween.destroy();
+			aronaTween = null;
 		}
 
 		super.changeSelection(change);
 
-		// 确保aris存在再创建tween
-		if (aris != null && aris.exists)
+		// 确保arona存在再创建tween
+		if (arona != null && arona.exists)
 		{
-			arisTween = FlxTween.tween(aris, {
-				x: ((arisDance == curSelected) || (antialiasingOption == curSelected)) ? 900 : 1500,
-				angle: (arisDance == curSelected) ? aris.angle : (Math.round(aris.angle / 360) * 360)
+			aronaTween = FlxTween.tween(arona, {
+				x: ((aronaScr == curSelected) || (antialiasingOption == curSelected)) ? 900 : 1500,
+				angle: (aronaScr == curSelected) ? arona.angle : (Math.round(arona.angle / 360) * 360)
 			}, 0.4, {
 				ease: FlxEase.quadOut,
 				onComplete: function(twn:FlxTween) {
-					if (arisTween == twn)
-						arisTween = null;
+					if (aronaTween == twn)
+						aronaTween = null;
 				}
 			});
 		}
@@ -145,16 +145,16 @@ override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
-		// 更新Aris动画
-		if (aris != null && arisDance == curSelected)
-			//aris.angle += elapsed * 100; // 使用时间增量保持旋转速度一致
-			aris.angle += 1;
+		// 更新arona动画
+		if (arona != null && aronaScr == curSelected)
+			//arona.angle += elapsed * 100; // 使用时间增量保持旋转速度一致
+			arona.angle += 1;
 
 		#if !html5
-		final showWarning:Bool = curSelected == arisDance && 
+		final showWarning:Bool = curSelected == aronaScr && 
 			(ClientPrefs.data.framerate < 60 || ClientPrefs.data.framerate > 240);
 
-		final isCritical:Bool = curSelected == arisDance && ClientPrefs.data.framerate > 480;
+		final isCritical:Bool = curSelected == aronaScr && ClientPrefs.data.framerate > 480;
 
 		warningText.visible = showWarning || isCritical;
 		if (isCritical) {
@@ -169,17 +169,17 @@ override function update(elapsed:Float)
 
 	override function destroy()
 	{
-		if (arisTween != null)
+		if (aronaTween != null)
 		{
-			arisTween.cancel();
-			arisTween.destroy();
-			arisTween = null;
+			aronaTween.cancel();
+			aronaTween.destroy();
+			aronaTween = null;
 		}
 		
-		if (aris != null)
+		if (arona != null)
 		{
-			aris.destroy();
-			aris = null;
+			arona.destroy();
+			arona = null;
 		}
 		
 		super.destroy();

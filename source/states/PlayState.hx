@@ -1662,40 +1662,35 @@ class PlayState extends MusicBeatState
 
 				trace('--- Loading PLAYER vocals ---');
 				trace('Song: ${songData.song}');
-				trace('Special vocal version: $special');
+				trace('Special vocal version: ${special != null ? special : "NONE"}');
 				trace('Player vocal file: $playerVocalFile');
 
-				if (!loadedPlayerVocals && special != null && special.length > 0)
+				// ========== 优化后的加载逻辑 ==========
+				if (special != null && special.length > 0)
 				{
-					var path1 = '${songData.song}/Voices-${special}-${playerVocalFile}';
-					trace('Trying path: $path1');
-					playerVocals = Paths.voices(songData.song, playerVocalFile, special);
+					// 特殊版本优先
+					playerVocals = tryLoadVocals(songData.song, playerVocalFile, special);
 					if (playerVocals != null)
 					{
-						trace('SUCCESS: Loaded player vocals from specific character file');
+						trace('SUCCESS: Loaded player vocals from specific character file (special version)');
 						vocals.loadEmbedded(playerVocals);
 						loadedPlayerVocals = true;
 					}
-				}
-
-				if (!loadedPlayerVocals && special != null && special.length > 0)
-				{
-					var path2 = '${songData.song}/Voices-${special}';
-					trace('Not found, trying path: $path2');
-					playerVocals = Paths.voices(songData.song, null, special);
-					if (playerVocals != null)
+					else
 					{
-						trace('SUCCESS: Loaded player vocals from special version');
-						vocals.loadEmbedded(playerVocals);
-						loadedPlayerVocals = true;
+						playerVocals = tryLoadVocals(songData.song, null, special);
+						if (playerVocals != null)
+						{
+							trace('SUCCESS: Loaded player vocals from special version');
+							vocals.loadEmbedded(playerVocals);
+							loadedPlayerVocals = true;
+						}
 					}
 				}
-
-				if (!loadedPlayerVocals)
+				else
 				{
-					var path3 = '${songData.song}/Voices-${playerVocalFile}';
-					trace('Not found, trying path: $path3');
-					playerVocals = Paths.voices(songData.song, playerVocalFile, null);
+					// 无特殊版本时优先加载带角色后缀的
+					playerVocals = tryLoadVocals(songData.song, playerVocalFile, null);
 					if (playerVocals != null)
 					{
 						trace('SUCCESS: Loaded player vocals from character file');
@@ -1704,15 +1699,15 @@ class PlayState extends MusicBeatState
 					}
 				}
 
-				if (!loadedPlayerVocals && (special == null || special.length == 0))
+				// 如果上述尝试都失败，加载默认人声
+				if (!loadedPlayerVocals)
 				{
-					var path4 = '${songData.song}/Voices';
-					trace('Not found, trying default path: $path4');
-					playerVocals = Paths.voices(songData.song, null, null);
+					playerVocals = tryLoadVocals(songData.song, null, null);
 					if (playerVocals != null)
 					{
-						trace('SUCCESS: Loaded default player vocals');
+						trace('SUCCESS: Loaded DEFAULT player vocals');
 						vocals.loadEmbedded(playerVocals);
+						loadedPlayerVocals = true;
 					}
 					else
 					{
@@ -1727,61 +1722,44 @@ class PlayState extends MusicBeatState
 
 				trace('\n--- Loading OPPONENT vocals ---');
 				trace('Song: ${songData.song}');
-				trace('Special vocal version: $special');
+				trace('Special vocal version: ${special != null ? special : "NONE"}');
 				trace('Opponent vocal file: $oppVocalFile');
 
-				if (!loadedOpponentVocals && special != null && special.length > 0)
+				// ========== 优化后的加载逻辑 ==========
+				if (special != null && special.length > 0)
 				{
-					var path1 = '${songData.song}/Voices-${special}-${oppVocalFile}';
-					trace('Trying path: $path1');
-					oppVocals = Paths.voices(songData.song, oppVocalFile, special);
+					// 特殊版本优先
+					oppVocals = tryLoadVocals(songData.song, oppVocalFile, special);
 					if (oppVocals != null)
 					{
-						trace('SUCCESS: Loaded opponent vocals from specific character file');
+						trace('SUCCESS: Loaded opponent vocals from specific character file (special version)');
 						opponentVocals.loadEmbedded(oppVocals);
 						loadedOpponentVocals = true;
 					}
-				}
-
-				if (!loadedOpponentVocals && special != null && special.length > 0)
-				{
-					var path2 = '${songData.song}/Voices-${special}';
-					trace('Not found, trying path: $path2');
-					oppVocals = Paths.voices(songData.song, null, special);
-					if (oppVocals != null)
+					else
 					{
-						trace('SUCCESS: Loaded opponent vocals from special version');
-						opponentVocals.loadEmbedded(oppVocals);
-						loadedOpponentVocals = true;
+						oppVocals = tryLoadVocals(songData.song, null, special);
+						if (oppVocals != null)
+						{
+							trace('SUCCESS: Loaded opponent vocals from special version');
+							opponentVocals.loadEmbedded(oppVocals);
+							loadedOpponentVocals = true;
+						}
 					}
 				}
-
-				if (!loadedOpponentVocals)
+				else
 				{
-					var path3 = '${songData.song}/Voices-${oppVocalFile}';
-					trace('Not found, trying path: $path3');
-					oppVocals = Paths.voices(songData.song, oppVocalFile, null);
+					// 无特殊版本时只加载带角色后缀的
+					oppVocals = tryLoadVocals(songData.song, oppVocalFile, null);
 					if (oppVocals != null)
 					{
 						trace('SUCCESS: Loaded opponent vocals from character file');
 						opponentVocals.loadEmbedded(oppVocals);
 						loadedOpponentVocals = true;
 					}
-				}
-
-				if (!loadedOpponentVocals && (special == null || special.length == 0))
-				{
-					var path4 = '${songData.song}/Voices';
-					trace('Not found, trying default path: $path4');
-					oppVocals = Paths.voices(songData.song, null, null);
-					if (oppVocals != null)
-					{
-						trace('SUCCESS: Loaded default opponent vocals');
-						opponentVocals.loadEmbedded(oppVocals);
-					}
 					else
 					{
-						trace('ERROR: Failed to load opponent vocals');
+						trace('NOTICE: No opponent vocals found, skipping');
 					}
 				}
 			}
@@ -1973,6 +1951,35 @@ class PlayState extends MusicBeatState
 
 		unspawnNotes.sort(sortByTime);
 		generatedMusic = true;
+	}
+
+	// ===== 新增的辅助函数 =====
+	private function tryLoadVocals(song:String, ?character:String, ?special:String):Any
+	{
+		var path:String = '${song}/Voices';
+		if (special != null && special.length > 0)
+		{
+			path += '-${special}';
+		}
+		if (character != null && character.length > 0)
+		{
+			path += '-${character}';
+		}
+		trace('Trying path: $path');
+
+		try
+		{
+			var vocals = Paths.voices(song, character, special);
+			if (vocals != null)
+			{
+				return vocals;
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace('Error loading vocals: ${e}');
+		}
+		return null;
 	}
 
 	// called only once per different event (Used for precaching)
@@ -3576,6 +3583,13 @@ class PlayState extends MusicBeatState
 		var theEXrating:FlxSprite = new FlxSprite();
 		var score:Int = 350;
 
+ 		// 新增：检测 dodgeNote 并设置后缀
+    	var specialNoteSuffix:String = (note != null && note.dodgeNote) ? "-dodged" : "";
+    	// 合并到原有路径变量中
+    	ratingexspr += specialNoteSuffix;
+    	exratingexspr += specialNoteSuffix;
+    	//numexspr += specialNoteSuffix;
+
 		// tryna do MS based judgment due to popular demand
 		var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
 
@@ -3624,7 +3638,7 @@ class PlayState extends MusicBeatState
 			antialias = !isPixelStage;
 		}
 
-		theEXrating.loadGraphic(Paths.image(uiPrefix + daRating.image + exratingexspr + uiSuffix));
+		theEXrating.loadGraphic(Paths.image(uiPrefix + daRating.image + uiSuffix + exratingexspr));
 		theEXrating.screenCenter();
 		theEXrating.x = placement - 40;
 		theEXrating.y -= 60;
@@ -3636,7 +3650,7 @@ class PlayState extends MusicBeatState
 		theEXrating.y += -ClientPrefs.data.comboOffset[5] + 150;
 		theEXrating.antialiasing = antialias;
 
-		rating.loadGraphic(Paths.image(uiPrefix + daRating.image + ratingexspr + uiSuffix));
+		rating.loadGraphic(Paths.image(uiPrefix + daRating.image + uiSuffix + ratingexspr));
 		rating.screenCenter();
 		rating.x = placement - 40;
 		rating.y -= 60;
@@ -3737,7 +3751,7 @@ class PlayState extends MusicBeatState
 
 		for (i in seperatedScore)
 		{
-			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiPrefix + 'num' + Std.int(i) + uiSuffix));
+			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiPrefix + 'num' + Std.int(i) + uiSuffix + numexspr));
 			numScore.screenCenter();
 			numScore.x = placement + (43 * daLoop) - 70 + ClientPrefs.data.comboOffset[2];
 			numScore.y += 80 - ClientPrefs.data.comboOffset[3] + 110;
@@ -3821,6 +3835,9 @@ class PlayState extends MusicBeatState
 			},
 			startDelay: Conductor.crochet * 0.002 / playbackRate
 		});
+		ratingexspr = '';        // 恢复为默认值
+		exratingexspr = '-extra';// 恢复为默认值
+		numexspr = '';           // 恢复为默认值
 	}
 
 	public var strumsBlocked:Array<Bool> = [];

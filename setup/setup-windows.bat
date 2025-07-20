@@ -26,7 +26,7 @@ haxelib install hscript-iris 1.1.3 --skip-dependencies
 haxelib install hxvlc 2.0.1 --skip-dependencies
 haxelib install svg 1.1.3 --skip-dependencies
 haxelib install yagp 1.1.4 --skip-dependencies
-haxelib install SScript 7.7.0 --skip-dependencies
+haxelib git SScript https://github.com/x8c8r/SScript-7.7.0 main
 haxelib git flxanimate https://github.com/FunkinExtraKeys/flxanimate dev
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit master
 

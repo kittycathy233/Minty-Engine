@@ -42,10 +42,8 @@
     },
     {
       "name": "SScript",
-      "type": "git",
-      "dir": null,
-      "ref": "main",
-      "url": "https://github.com/mcagabe19-stuff/SScript-7.7.0.git"
+      "type": "haxelib",
+      "version": "7.7.0"
     },
     {
       "name": "hxcpp-debug-server",

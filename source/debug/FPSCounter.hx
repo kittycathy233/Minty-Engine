@@ -234,7 +234,7 @@ class FPSCounter extends Sprite
             tfVersion.visible = ClientPrefs.data.exgameversion;
             if (tfVersion.visible) {
                 tfVersion.defaultTextFormat = new TextFormat(getFontName(), VERSION_SIZE, 0xCCCCCC, false);
-                tfVersion.text = 'MintRhythm v${MainMenuState.mintrhythmEngineVersion}\nExtraKeys v${MainMenuState.extraKeysVersion}\nPsych Engine v${MainMenuState.psychEngineVersion}';
+                tfVersion.text = 'Minty Engine v${MainMenuState.mtEngineVersion}\nExtraKeys v${MainMenuState.extraKeysVersion}\nPsych Engine v${MainMenuState.psychEngineVersion}';
             }
             
             // 计算背景尺寸

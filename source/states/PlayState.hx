@@ -59,8 +59,8 @@ import psychlua.HScript;
 import tea.SScript;
 #end
 import lime.app.Application;
-import funkin.vis.dsp.SpectralAnalyzer;
-import funkin.vis.audioclip.frontends.LimeAudioClip;
+/*import funkin.vis.dsp.SpectralAnalyzer;
+import funkin.vis.audioclip.frontends.LimeAudioClip;*/
 import objects.Bar as Bar;
 
 /**
@@ -358,7 +358,7 @@ class PlayState extends MusicBeatState
 	public var startCallback:Void->Void = null;
 	public var endCallback:Void->Void = null;
 
-	public var audioAnalyzer:SpectralAnalyzer;
+	/*public var audioAnalyzer:SpectralAnalyzer;
 
 	public function initAnalyzer(barCount:Int, maxDelta:Float = 0.01, peakHold:Int = 30)
 	{
@@ -378,7 +378,7 @@ class PlayState extends MusicBeatState
 	{
 		var levels = audioAnalyzer.getLevels();
 		return [for (i in levels) i.value];
-	}
+	}*/
 
 	override public function create()
 	{
@@ -771,7 +771,7 @@ class PlayState extends MusicBeatState
 			SONG.song
 			+ "-"
 			+ Difficulty.getString().toUpperCase()
-			+ ' | M.R. Extra Keys v${MainMenuState.mintrhythmEngineVersion}', 14);
+			+ ' | Minty Engine v${MainMenuState.mtEngineVersion}', 14);
 		watermarkText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		watermarkText.scrollFactor.set();
 		watermarkText.borderSize = 1.2;
@@ -2326,8 +2326,18 @@ class PlayState extends MusicBeatState
 				openCharacterEditor();
 		}
 
-		if (healthBar.bounds.max != null && health > healthBar.bounds.max)
+		// 无限血量功能：当启用tabiHealth时，血量上限无限，但超过2时会缓慢降低至2
+		if (ClientPrefs.data.tabiHealth) {
+			// 移除血量上限限制
+			if (health > 2) {
+				// 当血量超过2时，缓慢降低
+				health -= 0.0025 * elapsed * 60; // 根据帧率调整降低速度
+				if (health < 2) health = 2; // 确保不会降到2以下
+			}
+		} else if (healthBar.bounds.max != null && health > healthBar.bounds.max) {
+			// 非无限血量模式下，正常限制血量上限
 			health = healthBar.bounds.max;
+		}
 
 		// 平滑处理显示血量
 		if (ClientPrefs.data.smoothHP)
@@ -2650,9 +2660,15 @@ class PlayState extends MusicBeatState
 		var ret:Dynamic = callOnScripts('preSetHealth', [value]);
 		if (ret != LuaUtils.Function_Stop)
 		{
-			// 使用healthBar.bounds.max作为上限（如果存在），否则使用maxHealth
-			var upperBound:Float = (healthBar != null && healthBar.bounds.max != null) ? healthBar.bounds.max : maxHealth;
-			value = Math.max(0, Math.min(value, upperBound));
+			// 无限血量模式下不限制上限
+			if (ClientPrefs.data.tabiHealth) {
+				// 只限制下限为0
+				value = Math.max(0, value);
+			} else {
+				// 正常模式：使用healthBar.bounds.max作为上限（如果存在），否则使用maxHealth
+				var upperBound:Float = (healthBar != null && healthBar.bounds.max != null) ? healthBar.bounds.max : maxHealth;
+				value = Math.max(0, Math.min(value, upperBound));
+			}
 
 			// 立即更新实际health值
 			health = value;
@@ -2705,6 +2721,25 @@ class PlayState extends MusicBeatState
 			return;
 
 		// 根据实际血量和显示血量计算百分比
+		if (ClientPrefs.data.tabiHealth && health > healthBar.bounds.max) {
+			// 无限血量模式下，如果血量超过正常上限，血条显示为满
+			var actualPercent:Float = 100;
+			var displayedPercent:Float = 100;
+			
+			// 但是我们仍然需要更新displayedHealth以便图标位置计算
+			if (ClientPrefs.data.smoothHP) {
+				healthLerp = FlxMath.lerp(healthLerp, health, 0.005);
+				displayedHealth = healthLerp;
+			} else {
+				displayedHealth = health;
+			}
+			
+			// 更新血条的显示值
+			healthBar.percent = 100;
+			return;
+		}
+		
+		// 正常模式下的处理
 		var actualPercent:Float = FlxMath.remapToRange(FlxMath.bound(health, healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min,
 			healthBar.bounds.max, 0, 100);
 		var displayedPercent:Float = FlxMath.remapToRange(FlxMath.bound(displayedHealth, healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min,
@@ -2713,7 +2748,7 @@ class PlayState extends MusicBeatState
 		// 如果启用了平滑HP，则更新显示血量，否则直接使用实际血量
 		if (ClientPrefs.data.smoothHP)
 		{
-			healthLerp = FlxMath.lerp(healthLerp, health, 0.05); // 平滑过渡速度可调
+			healthLerp = FlxMath.lerp(healthLerp, health, 0.005); // 平滑过渡速度可调
 			displayedHealth = healthLerp;
 		}
 		else

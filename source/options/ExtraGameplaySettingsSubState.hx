@@ -156,6 +156,12 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
+		var option:Option = new Option('无限血量',
+		'开启后血量上限无限，但超过2时会缓慢降低至2',
+		'tabiHealth',
+		'bool');
+		addOption(option);
+
 		/*var option:Option = new Option('Volume Style',
 		//Language.get("loading_style_desc"),
 		'（施工中）更改音量条主题',

@@ -114,6 +114,7 @@ import states.TitleState;
 	//public var volumeTheme:String = "Vanilla"; // vanila, psych, archive
 	public var cpuStrums: Bool = true;
 	public var tabiBar: Bool = true;
+	public var tabiHealth: Bool = false; // 无限血量选项
 	public var botplayStyle:String = "Kade"; // vanila, psych, archive
 	public var showcaseStyle:String = "Kade";
 	public var fpstxtStyle:String = "Kade";

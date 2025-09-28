@@ -50,11 +50,12 @@
 	<!--Switch-specific-->
 	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
 
-<!-- 启用高质量渲染 -->
-<window allow-high-dpi="true" /> <!-- 支持高 DPI 显示器 -->
-<haxedef name="lime-bitmap-smoothing" /> <!-- 强制启用平滑 -->
-<haxedef name="openfl-bitmap-smoothing" /> <!-- OpenFL 平滑 -->
-<set name="lime-legacy-bitmap-smoothing" value="false" /> <!-- 禁用旧版平滑（避免冲突） -->
+	<!-- 启用高质量渲染 -->
+	<window allow-high-dpi="true" /> <!-- 支持高 DPI 显示器 -->
+	<haxedef name="lime-bitmap-smoothing" /> <!-- 强制启用平滑 -->
+	<haxedef name="openfl-bitmap-smoothing" /> <!-- OpenFL 平滑 -->
+	<set name="lime-legacy-bitmap-smoothing" value="false" /> <!-- 禁用旧版平滑（避免冲突） -->
+
 	<!-- _____________________________ Path Settings ____________________________ -->
 
 	<set name="BUILD_DIR" value="export/debug" if="debug" />
@@ -96,11 +97,11 @@
 
 	<!-- _______________________________ Libraries ______________________________ -->
 
-	<haxelib name="flixel" />
-	<haxelib name="flixel-ui" />
-	<haxelib name="flixel-addons" />
-	<haxelib name="tjson" />
-	<haxelib name="json2object" />
+	<haxelib name="flixel" version='6.1.0'/>
+	<haxelib name="flixel-ui" version='2.6.4'/>
+	<haxelib name="flixel-addons" version='3.3.2'/>
+	<haxelib name="tjson" version='1.4.0'/>
+	<haxelib name="json2object" version='3.11.0'/>
 
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
@@ -183,8 +184,8 @@
 	<!-- _______________________________ Addons ______________________________ -->
 	<haxelib name="flxgif" version="1.0.3"/>
 	<haxelib name="flxsvg" version="1.1.0"/>
-	<haxelib name="funkin.vis"/>
-	<!--haxelib name="grig.audio"/-->
+	<!--haxelib name="funkin.vis"/-->
+	<haxelib name="grig.audio"/>
 	<haxelib name="extension-androidtools" version="2.2.1"/>
 	<haxelib name="sl-windows-api" version="1.1.0"  if="desktop"/>
 	<haxelib name="hxWindowColorMode" version="0.2.0" if="desktop"/>

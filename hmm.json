@@ -13,7 +13,7 @@
     {
       "name": "flixel",
       "type": "haxelib",
-      "version": "5.8.0"
+      "version": "6.1.0"
     },
     {
       "name": "flixel-addons",
@@ -69,7 +69,7 @@
     {
       "name": "flxanimate",
       "type": "git",
-      "url": "https://github.com/FunkinExtraKeys/flxanimate",
+      "url": "https://github.com/kittycathy233/flxanimate-m",
       "ref": "dev"
     },
     {
@@ -111,7 +111,7 @@
     {
       "name": "hxvlc",
       "type": "haxelib",
-      "version": "2.0.1"
+      "version": "2.2.4"
     },
     {
       "name": "svg",
@@ -122,6 +122,11 @@
       "name": "yagp",
       "type": "haxelib",
       "version": "1.1.4"
+    },
+    {
+      "name": "grig.audio",
+      "type": "haxelib",
+      "version": "0.0.5"
     },
     {
       "name": "funkin.vis",

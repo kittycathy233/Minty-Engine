@@ -1,6 +1,5 @@
 package;
 
-import states.MainMenuState;
 #if (android && !macro)
 import extension.androidtools.content.Context;
 #end
@@ -121,6 +120,8 @@ class Main extends Sprite
 		@:privateAccess
 		game._customSoundTray = backend.FunkinSoundTray;
 		//#end
+
+		addChild(game);
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 

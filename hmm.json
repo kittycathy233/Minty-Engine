@@ -28,7 +28,7 @@
     {
       "name": "flixel-ui",
       "type": "haxelib",
-      "version": "2.6.1"
+      "version": "2.6.4"
     },
     {
       "name": "hxcpp",
@@ -127,6 +127,13 @@
       "name": "grig.audio",
       "type": "haxelib",
       "version": "0.0.5"
+    },
+        {
+      "name": "spine-haxe",
+      "type": "git",
+      "dir": "spine-haxe",
+      "ref": "cd726af62b8cbf12ba47c6c0f68d8e04451cf162",
+      "url": "https://github.com/EsotericSoftware/spine-runtimes/"
     },
     {
       "name": "funkin.vis",

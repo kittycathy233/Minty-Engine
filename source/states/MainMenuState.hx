@@ -89,15 +89,20 @@ class MainMenuState extends MusicBeatState
 			menuItem.screenCenter(X);
 		}
 
-		var fnfRechartVer:FlxText = new FlxText(12, FlxG.height - 110, 0, "FNF Recharted v0.0.0.20250713", 12);
+		var fnfRechartVer:FlxText = new FlxText(12, FlxG.height - 130, 0, "FNF Recharted v0.0.0.20250713", 12);
 		fnfRechartVer.scrollFactor.set();
 		fnfRechartVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(fnfRechartVer);
 
-		var mrVer:FlxText = new FlxText(12, FlxG.height - 90, 0, "Minty Engine v" + mtEngineVersion, 12);
+		var mrVer:FlxText = new FlxText(12, FlxG.height - 110, 0, "Minty Engine v" + mtEngineVersion, 12);
 		mrVer.scrollFactor.set();
 		mrVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(mrVer);
+
+		var spinerVer:FlxText = new FlxText(12, FlxG.height - 90, 0, "Spine Runtime v4.2", 12);
+		spinerVer.scrollFactor.set();
+		spinerVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(spinerVer);
 
 		var ekVer:FlxText = new FlxText(12, FlxG.height - 70, 0, "Extra Keys v" + extraKeysVersion, 12);
 		ekVer.scrollFactor.set();

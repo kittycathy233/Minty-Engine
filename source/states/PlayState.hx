@@ -969,22 +969,24 @@ class PlayState extends MusicBeatState
 	//实验性修改测试
 	public function reloadHealthBarColors()
 {
-    // 优先用当前icon名查找角色Map，找不到再用当前角色
-    var leftColor:FlxColor = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
-    var rightColor:FlxColor = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
+    if (ClientPrefs.data.healthbarstyle == "Kade")
+        healthBar.setColors(0xFFFF0000, 0xFF00FF00);
+	else {
+        var leftColor:FlxColor = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
+        var rightColor:FlxColor = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
 
-    if (dadMap.exists(curIconP2))
-    {
-        var c = dadMap.get(curIconP2);
-        leftColor = FlxColor.fromRGB(c.healthColorArray[0], c.healthColorArray[1], c.healthColorArray[2]);
+        if (dadMap.exists(curIconP2)) 
+		{
+            var c = dadMap.get(curIconP2);
+            leftColor = FlxColor.fromRGB(c.healthColorArray[0], c.healthColorArray[1], c.healthColorArray[2]);
+        }
+        if (boyfriendMap.exists(curIconP1)) 
+		{
+            var c = boyfriendMap.get(curIconP1);
+            rightColor = FlxColor.fromRGB(c.healthColorArray[0], c.healthColorArray[1], c.healthColorArray[2]);
+        }
+        healthBar.setColors(leftColor, rightColor);
     }
-    if (boyfriendMap.exists(curIconP1))
-    {
-        var c = boyfriendMap.get(curIconP1);
-        rightColor = FlxColor.fromRGB(c.healthColorArray[0], c.healthColorArray[1], c.healthColorArray[2]);
-    }
-
-    healthBar.setColors(leftColor, rightColor);
     healthBar.percent = (displayedHealth / maxHealth) * 100;
 }
 

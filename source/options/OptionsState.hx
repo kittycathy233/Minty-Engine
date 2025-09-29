@@ -46,6 +46,8 @@ class OptionsState extends MusicBeatState
 		bg.updateHitbox();
 
 		bg.screenCenter();
+		bg.scrollFactor.set(0.1, 0.1);
+		FlxTween.color(bg, 3, 0xFFea71fd, 0xFF00a2ff, {type: PINGPONG});
 		add(bg);
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
@@ -55,7 +57,8 @@ class OptionsState extends MusicBeatState
 		{
 			var optionText:Alphabet = new Alphabet(0, 0, options[i], true);
 			optionText.screenCenter();
-			optionText.y += (100 * (i - (options.length / 2))) + 50;
+			optionText.y += (80 * (i - (options.length / 2))) + 50;
+			optionText.targetY = i - curSelected;
 			grpOptions.add(optionText);
 		}
 
@@ -66,6 +69,18 @@ class OptionsState extends MusicBeatState
 
 		changeSelection();
 		ClientPrefs.saveSettings();
+
+		var versionText:FlxText = new FlxText(0, FlxG.height + 200, FlxG.width - 20, 
+			'Minty Engine v${MainMenuState.mtEngineVersion}' +
+			'\nPsych Engine v${MainMenuState.psychEngineVersion}', 
+			12);
+		versionText.scrollFactor.set();
+		versionText.setFormat("VCR OSD Mono", 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		versionText.alpha = 0;
+		add(versionText);
+
+		FlxTween.tween(versionText, {alpha: 1}, 1, {ease: FlxEase.quadOut, startDelay: 0.5});
+		FlxTween.tween(versionText, {y: FlxG.height - 64}, 0.7, {ease: FlxEase.backOut, startDelay: 0.5});
 
 		super.create();
 	}
@@ -114,13 +129,16 @@ class OptionsState extends MusicBeatState
 			item.targetY = bullShit - curSelected;
 			bullShit++;
 
-			item.alpha = 0.6;
+			item.alpha = 0.8;
 			if (item.targetY == 0) {
 				item.alpha = 1;
-				selectorLeft.x = item.x - 63;
+				item.color = FlxColor.YELLOW;
+				selectorLeft.x = item.x - 50;
 				selectorLeft.y = item.y;
-				selectorRight.x = item.x + item.width + 15;
+				selectorRight.x = item.x + item.width + 10;
 				selectorRight.y = item.y;
+			} else {
+				item.color = FlxColor.WHITE;
 			}
 		}
 		FlxG.sound.play(Paths.sound('scrollMenu'));

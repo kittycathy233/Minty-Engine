@@ -117,8 +117,8 @@ class Main extends Sprite
 		//取自PE推送请求的#15421
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
 		//#if BASE_GAME_FILES
-		@:privateAccess
-		game._customSoundTray = backend.FunkinSoundTray;
+		//@:privateAccess
+		//game._customSoundTray = backend.FunkinSoundTray;
 		//#end
 
 		addChild(game);

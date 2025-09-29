@@ -1,5 +1,6 @@
 package;
 
+import states.MainMenuState;
 #if (android && !macro)
 import extension.androidtools.content.Context;
 #end
@@ -17,6 +18,7 @@ import openfl.events.Event;
 import openfl.display.StageScaleMode;
 import lime.app.Application;
 import states.TitleState;
+import states.MainMenuState;
 
 #if linux
 import lime.graphics.Image;
@@ -112,6 +114,7 @@ class Main extends Sprite
 		ExtraKeysHandler.instance = new ExtraKeysHandler();
 		ClientPrefs.loadDefaultKeys();
 		//addChild(new FlxGame(game.width, game.height, #if COPYSTATE_ALLOWED !CopyState.checkExistingFiles() ? CopyState : #end game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
+		
 		//取自PE推送请求的#15421
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
 		//#if BASE_GAME_FILES
@@ -120,15 +123,10 @@ class Main extends Sprite
 		//#end
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
-		//addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
-		addChild(game);
-		// 启用全局抗锯齿
-		FlxSprite.defaultAntialiasing = true;
 
-		#if !mobile
-		// 设置高品质渲染
-		Lib.current.stage.quality = openfl.display.StageQuality.HIGH;
-		#end
+		//addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
+
+		MainMenuState.mtEngineVersion = Application.current.meta.get('version');
 
 		#if !mobile
 		fpsVar = new FPSCounter(10, 10, 0xFFFFFF);

@@ -12,6 +12,7 @@ class MainMenuState extends MusicBeatState
 	public static var psychEngineVersion:String = '0.7.3'; // This is also used for Discord RPC
 	public static var extraKeysVersion:String = '0.4.9'; // This is also used for Discord RPC
 	public static var mtEngineVersion:String = '0.0.0'; // This is also used for Discord RPC
+	public static var pendingUpdateNotice:Bool = false;
 	public static var curSelected:Int = 0;
 
 	var menuItems:FlxTypedGroup<FlxSprite>;
@@ -132,6 +133,12 @@ class MainMenuState extends MusicBeatState
 		#end
 
 		super.create();
+
+		if(pendingUpdateNotice) {
+			pendingUpdateNotice = false;
+			MusicBeatState.switchState(new OutdatedState());
+			return;
+		}
 
 		FlxG.camera.follow(camFollow, null, 9);
 	}

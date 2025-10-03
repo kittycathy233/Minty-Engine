@@ -21,6 +21,7 @@ import shaders.ColorSwap;
 import states.StoryMenuState;
 import states.OutdatedState;
 import states.MainMenuState;
+import sys.thread.Thread;
 
 typedef TitleData =
 {
@@ -95,8 +96,9 @@ class TitleState extends MusicBeatState
 
 		#if CHECK_FOR_UPDATES
 		if(ClientPrefs.data.checkForUpdates && !closedState) {
-			trace('checking for update');
-			var http = new haxe.Http("https://fnlookup-apiv2.vercel.app/api?extrakeys");
+			trace('starting background update check');
+			Thread.create(() -> {
+				var http = new haxe.Http("https://fnlookup-apiv2.vercel.app/api?extrakeys");
 
 			http.onData = function (data:String)
 			{
@@ -113,7 +115,8 @@ class TitleState extends MusicBeatState
 				trace('error: $error');
 			}
 
-			http.request();
+				http.request();
+			});
 		}
 		#end
 

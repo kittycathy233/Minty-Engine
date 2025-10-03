@@ -2,6 +2,8 @@ package options;
 
 import states.MainMenuState;
 import backend.StageData;
+import flixel.addons.display.FlxBackdrop;
+import flixel.addons.display.FlxGridOverlay;
 
 class OptionsState extends MusicBeatState
 {
@@ -50,6 +52,12 @@ class OptionsState extends MusicBeatState
 		FlxTween.color(bg, 3, 0xFFea71fd, 0xFF00a2ff, {type: PINGPONG});
 		add(bg);
 
+		var grid:FlxBackdrop = new FlxBackdrop(FlxGridOverlay.createGrid(80, 80, 160, 160, true, 0x33FFFFFF, 0x0));
+		grid.velocity.set(40, 40);
+		grid.alpha = 0;
+		FlxTween.tween(grid, {alpha: 1}, 0.5, {ease: FlxEase.quadOut});
+		add(grid);
+
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
 
@@ -82,6 +90,11 @@ class OptionsState extends MusicBeatState
 		FlxTween.tween(versionText, {alpha: 1}, 1, {ease: FlxEase.quadOut, startDelay: 0.5});
 		FlxTween.tween(versionText, {y: FlxG.height - 64}, 0.7, {ease: FlxEase.backOut, startDelay: 0.5});
 
+		// 进入选项菜单时将 FPS 计数器设为全透明
+		if (Main.fpsVar != null) {
+			FlxTween.tween(Main.fpsVar, {alpha: 0}, 0.3, {ease: FlxEase.quadOut});
+		}
+
 		super.create();
 	}
 
@@ -105,6 +118,12 @@ class OptionsState extends MusicBeatState
 
 		if (controls.BACK) {
 			FlxG.sound.play(Paths.sound('cancelMenu'));
+			
+			// 退出选项菜单时将 FPS 计数器恢复不透明
+			if (Main.fpsVar != null) {
+				FlxTween.tween(Main.fpsVar, {alpha: 1}, 0.3, {ease: FlxEase.quadOut});
+			}
+			
 			if(onPlayState)
 			{
 				StageData.loadDirectory(PlayState.SONG);

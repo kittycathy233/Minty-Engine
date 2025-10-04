@@ -156,9 +156,10 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
-		var option:Option = new Option('无限血量',
-		'开启后血量上限无限，但超过2时会缓慢降低至2',
-		'tabiHealth',
+		var option:Option = new Option('INF HP',
+		Language.get("infhp_desc"),
+		//'开启后血量上限无限，但超过2时会缓慢降低至2',
+		'infHealth',
 		'bool');
 		addOption(option);
 

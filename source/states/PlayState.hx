@@ -2328,16 +2328,13 @@ class PlayState extends MusicBeatState
 				openCharacterEditor();
 		}
 
-		// 无限血量功能：当启用tabiHealth时，血量上限无限，但超过2时会缓慢降低至2
-		if (ClientPrefs.data.tabiHealth) {
-			// 移除血量上限限制
+		if (ClientPrefs.data.infHealth) {
 			if (health > 2) {
 				// 当血量超过2时，缓慢降低
-				health -= 0.0025 * elapsed * 60; // 根据帧率调整降低速度
-				if (health < 2) health = 2; // 确保不会降到2以下
+				health -= 0.0025 * elapsed * 60;
+				if (health < 2) health = 2;
 			}
 		} else if (healthBar.bounds.max != null && health > healthBar.bounds.max) {
-			// 非无限血量模式下，正常限制血量上限
 			health = healthBar.bounds.max;
 		}
 
@@ -2663,7 +2660,7 @@ class PlayState extends MusicBeatState
 		if (ret != LuaUtils.Function_Stop)
 		{
 			// 无限血量模式下不限制上限
-			if (ClientPrefs.data.tabiHealth) {
+			if (ClientPrefs.data.infHealth) {
 				// 只限制下限为0
 				value = Math.max(0, value);
 			} else {
@@ -2723,7 +2720,7 @@ class PlayState extends MusicBeatState
 			return;
 
 		// 根据实际血量和显示血量计算百分比
-		if (ClientPrefs.data.tabiHealth && health > healthBar.bounds.max) {
+		if (ClientPrefs.data.infHealth && health > healthBar.bounds.max) {
 			// 无限血量模式下，如果血量超过正常上限，血条显示为满
 			var actualPercent:Float = 100;
 			var displayedPercent:Float = 100;

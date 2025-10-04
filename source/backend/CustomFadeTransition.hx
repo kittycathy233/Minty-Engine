@@ -35,11 +35,19 @@ class CustomFadeTransition extends FlxSubState {
     var loadAlphaTween: FlxTween;
     var EventTextTween: FlxTween;
     var loadTextTween: FlxTween;
+    
+    // MintRhythm 专用变量
+    var mintLoadingText:FlxText;
+    var mintTextTween:FlxTween;
+    var mintMoveTween:FlxTween;
+    var mintFadeTween:FlxTween;
+
     public function new(duration: Float, isTransIn: Bool) {
         this.duration = duration;
         this.isTransIn = isTransIn;
         super();
     }
+    
     override function create() {
         
         var cam: FlxCamera = new FlxCamera();
@@ -262,29 +270,80 @@ class CustomFadeTransition extends FlxSubState {
             baLoadingPics.antialiasing = ClientPrefs.data.antialiasing;
             baLoadingPics.screenCenter();
             baLoadingPics.setGraphicSize(Std.int(baLoadingPics.width), Std.int(baLoadingPics.height * 1.18));
-            baLoadingPics.y = baLoadingPics.y - 20;
             baLoadingPics.updateHitbox();
             add(baLoadingPics);
 
+            // 添加Loading文字 - 改为成员变量
+            mintLoadingText = new FlxText(FlxG.width - 200, FlxG.height - 120, 0, "Loading...", 32);
+            mintLoadingText.setFormat(Assets.getFont("assets/fonts/arturito-slab.ttf").fontName, 32, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+            mintLoadingText.alpha = 0;
+            add(mintLoadingText);
+
             // 透明通道设置
             baLoadingPics.alpha = isTransIn ? 1 : 0;
+            transBlack.alpha = baLoadingPics.alpha;
 
             // 动画效果（保持和NovaFlare相同的缓动逻辑）
             if (!isTransIn) {
                 FlxG.sound.play(Paths.sound('BA/UI_Loading'));
-                baLoadingPicTween = FlxTween.tween(baLoadingPics, {alpha: 1}, duration, {
+
+                // 背景渐显动画
+                baLoadingPicTween = FlxTween.tween(baLoadingPics, {alpha: 1, y: baLoadingPics.y - 30}, duration, {
+                    onStart: function(_) {
+                        mintTextTween = FlxTween.tween(mintLoadingText, {alpha: 1, y: mintLoadingText.y - 30}, duration, {
+                            ease: FlxEase.quartOut
+                        });
+                    },
                     onComplete: function(twn:FlxTween) {
+                        // 立即切换state
                         if (finishCallback != null) finishCallback();
+                        
+                        mintFadeTween = FlxTween.tween(baLoadingPics, {alpha: 0}, 0.5, {
+                            onComplete: function(_) {
+                                // 动画完成后关闭substate
+                                close();
+                            },
+                            ease: FlxEase.quadIn
+                        });
                     },
                     ease: FlxEase.quartOut
                 });
+                
+                // 同步黑色背景的透明度
+                FlxTween.tween(transBlack, {alpha: 1}, duration, {
+                    ease: FlxEase.quartOut
+                });
+                
             } else {
                 FlxG.sound.play(Paths.sound('BA/UI_Login'));
+                
+                mintLoadingText.text = "Done!";
+                mintLoadingText.alpha = 1;
+
+                baLoadingPics.y -= 30;
+                mintLoadingText.y -= 30;
+
+                // 同时执行向下移动和渐隐动画
+                mintMoveTween = FlxTween.tween(baLoadingPics, {y: baLoadingPics.y + 30}, duration, {
+                    ease: FlxEase.quadIn
+                });
+                FlxTween.tween(mintLoadingText, {y: mintLoadingText.y + 30}, duration, {
+                    ease: FlxEase.quadIn
+                });
+                
                 baLoadingPicTween = FlxTween.tween(baLoadingPics, {alpha: 0}, duration, {
                     onComplete: function(twn:FlxTween) {
                         close();
                     },
-                    ease: FlxEase.linear
+                    ease: FlxEase.quadIn
+                });
+                mintFadeTween = FlxTween.tween(mintLoadingText, {alpha: 0}, duration, {
+                    ease: FlxEase.quadIn
+                });
+                
+                // 同步黑色背景的透明度
+                FlxTween.tween(transBlack, {alpha: 0}, duration, {
+                    ease: FlxEase.quadIn
                 });
             }
         } else {
@@ -309,6 +368,7 @@ class CustomFadeTransition extends FlxSubState {
 
         super.create();
     }
+    
     override function update(elapsed: Float) {
         if (ClientPrefs.data.customFadeStyle == 'Vanilla') {
             super.update(elapsed);
@@ -328,31 +388,19 @@ class CustomFadeTransition extends FlxSubState {
                 finishCallback = null;
             }
         } else if (ClientPrefs.data.customFadeStyle == 'MintRhythm') {
+            // 确保黑色背景与主图片同步透明度
             transBlack.alpha = baLoadingPics.alpha;
-           // transBG.alpha = baLoadingPics.alpha;
-           /* if (baLoadingPics.alpha <= 0) {
-                close();
-                if (finishCallback != null) finishCallback();
-                finishCallback = null;
-            }
-*/
-			/*//还没改
             super.update(elapsed);
-            final height: Float = FlxG.height * Math.max(camera.zoom, 0.001);
-            final targetPos: Float = transGradient.height + 50 * Math.max(camera.zoom, 0.001);
-            if (duration > 0)
-                transGradient.y += (height + targetPos) * elapsed / duration;
-            else
-                transGradient.y = (targetPos) * elapsed;
-            if (isTransIn)
-                transBlack.y = transGradient.y + transGradient.height;
-            else
-                transBlack.y = transGradient.y - transBlack.height;
-            if (transGradient.y >= targetPos) {
-                close();
-                if (finishCallback != null) finishCallback();
-                finishCallback = null;
-            }*/
         }
+    }
+    
+    override function destroy() {
+        // 清理所有tween
+        if (baLoadingPicTween != null) baLoadingPicTween.cancel();
+        if (mintTextTween != null) mintTextTween.cancel();
+        if (mintMoveTween != null) mintMoveTween.cancel();
+        if (mintFadeTween != null) mintFadeTween.cancel();
+        
+        super.destroy();
     }
 }

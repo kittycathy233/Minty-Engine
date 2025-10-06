@@ -411,49 +411,41 @@ FlxG.mouse.visible = true; // 添加鼠标可见
 						trace('Loading vocals for song: ${PlayState.SONG.song}');
 						destroyFreeplayVocals(); // 确保清理旧的人声音频
 
-						// 加载人声音频的主逻辑
-						var vocalPathsToTry:Array<String> = [];
+						// 使用与PlayState相同的vocal加载逻辑
+						var specialVocals:String = (PlayState.SONG.specialVocal != null && PlayState.SONG.specialVocal.trim().length > 0) ? PlayState.SONG.specialVocal : null;
+						var vocalsLoaded:Bool = false;
 						
-						// 构建尝试路径列表
-						if(PlayState.SONG.specialVocal != null && PlayState.SONG.specialVocal.length > 0) {
-							trace('Found specialVocal: ${PlayState.SONG.specialVocal}');
-							// 1. 特殊人声路径
-							vocalPathsToTry.push('Voices-${PlayState.SONG.specialVocal}');
-							// 2. 特殊角色人声路径
-							vocalPathsToTry.push('Voices-${PlayState.SONG.specialVocal}-opponent');
-							vocalPathsToTry.push('Voices-${PlayState.SONG.specialVocal}-player');
-						}
-						// 3. 默认人声路径
-						vocalPathsToTry.push('Voices');
-						// 4. 默认角色人声路径
-						vocalPathsToTry.push('Voices-opponent');
-						vocalPathsToTry.push('Voices-player');
-
-						// 按顺序尝试加载
-						for(path in vocalPathsToTry) {
-							if(vocalsLoaded) break;
-							
+						// 优先尝试加载特殊版本（仅当specialVocal有实际内容时）
+						if(specialVocals != null && specialVocals.trim().length > 0 && specialVocals.trim() != "") {
 							try {
-								trace('Attempting to load vocals: $path');
-								vocals = new FlxSound().loadEmbedded(Paths.voices(PlayState.SONG.song, path));
-								FlxG.sound.list.add(vocals);
-								vocals.volume = 0.8;
-								vocals.persist = true;
-								vocals.looped = true;
+								vocals = new FlxSound().loadEmbedded(Paths.voices(PlayState.SONG.song, null, specialVocals));
 								vocalsLoaded = true;
-								trace('Successfully loaded vocals from: $path');
-								
-								// 确保人声与伴奏同步
-								if(FlxG.sound.music.playing) {
-									vocals.time = FlxG.sound.music.time;
-									vocals.play();
-								}
+								trace('Successfully loaded special vocals version: $specialVocals');
 							} catch(e:Dynamic) {
-								trace('Failed to load vocals from $path: $e');
+								trace('Failed to load special vocals: $e');
 							}
 						}
-
+						
+						// 如果特殊版本加载失败，尝试默认人声
 						if(!vocalsLoaded) {
+							try {
+								vocals = new FlxSound().loadEmbedded(Paths.voices(PlayState.SONG.song));
+								vocalsLoaded = true;
+							} catch(e:Dynamic) {
+								trace('Failed to load default vocals: $e');
+							}
+						}
+						
+						if(vocalsLoaded) {
+							FlxG.sound.list.add(vocals);
+							vocals.volume = 0.8;
+							vocals.persist = true;
+							vocals.looped = true;
+							if(FlxG.sound.music.playing) {
+								vocals.time = FlxG.sound.music.time;
+								vocals.play();
+							}
+						} else {
 							trace('All vocal loading attempts failed, creating empty sound object');
 							vocals = new FlxSound();
 							FlxG.sound.list.add(vocals);

@@ -48,8 +48,18 @@ import winapi.WindowsAPI;
 import hxwindowmode.WindowColorMode;
 #end
 
+//spine-haxe
+import spine.animation.AnimationStateData;
+import spine.animation.AnimationState;
+import spine.atlas.TextureAtlas;
+import spine.SkeletonData;
+import spine.flixel.SkeletonSprite;
+import spine.flixel.FlixelTextureLoader;
 
 //Flixel
+import flixel.FlxBasic;
+import flixel.FlxObject;
+import flixel.FlxSubState;
 import flixel.sound.FlxSound;
 import flixel.FlxG;
 import flixel.FlxSprite;

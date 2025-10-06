@@ -37,6 +37,7 @@ import psychlua.HScript;
 #end
 import psychlua.DebugLuaText;
 import psychlua.ModchartSprite;
+import psychlua.ModchartSpine;
 
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
@@ -67,6 +68,7 @@ class FunkinLua {
 		//LuaL.dostring(lua, CLENSE);
 
 		this.scriptName = scriptName.trim();
+		trace('Loading Lua script: ' + this.scriptName);
 		var game:PlayState = PlayState.instance;
 		game.luaArray.push(this);
 
@@ -265,6 +267,7 @@ class FunkinLua {
 				args = [];
 			}
 
+			trace('Calling Lua function: ' + funcName + ' in script: ' + luaFile);
 			var foundScript:String = findScript(luaFile);
 			if(foundScript != null)
 				for (luaInstance in game.luaArray)
@@ -381,6 +384,7 @@ class FunkinLua {
 		});
 
 		Lua_helper.add_callback(lua, "addLuaScript", function(luaFile:String, ?ignoreAlreadyRunning:Bool = false) { //would be dope asf.
+			trace('Adding Lua script: ' + luaFile);
 			var foundScript:String = findScript(luaFile);
 			if(foundScript != null)
 			{
@@ -1008,6 +1012,7 @@ class FunkinLua {
 			game.modchartSprites.set(tag, leSprite);
 			leSprite.active = true;
 		});
+
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?spriteType:String = "sparrow") {
 			tag = tag.replace('.', '');
 			LuaUtils.resetSpriteTag(tag);
@@ -1021,6 +1026,31 @@ class FunkinLua {
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(obj, false);
 			if(spr != null) spr.makeGraphic(width, height, CoolUtil.colorFromString(color));
 		});
+		
+		Lua_helper.add_callback(lua, "makeSpineLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0)
+			{
+			tag = tag.replace('.', '');
+
+			var atlasFile = '${Paths.image(image)}.atlas';
+			var skeletonFile = '${Paths.image(image)}.skel';
+			var atlas = new TextureAtlas(atlasFile, new FlixelTextureLoader('${Paths.image(image)}.atlas'));
+			var skeletonData = SkeletonData.from(skeletonFile, atlas, 1);
+			var animationStateData = new AnimationStateData(skeletonData);
+
+			var character = new SkeletonSprite(skeletonData, animationStateData);
+			//character.state.setAnimationByName(0, character.defaultAnim, false);
+			
+			//LuaUtils.resetSpriteTag(tag);
+			//var leSprite:ModchartSpine = null;
+			//if(image != null && image.length > 0)
+			//{
+				//leSprite.loadGraphic(Paths.image(image));
+
+			//}
+			//game.modchartSpines.set(tag, character);
+			character.active = true;
+			});
+
 		Lua_helper.add_callback(lua, "addAnimationByPrefix", function(obj:String, name:String, prefix:String, framerate:Int = 24, loop:Bool = true) {
 			var obj:Dynamic = LuaUtils.getObjectDirectly(obj, false);
 			if(obj != null && obj.animation != null)
@@ -1108,6 +1138,32 @@ class FunkinLua {
 			}
 			return true;
 		});
+		
+		Lua_helper.add_callback(lua, "addLuaSpine", function(tag:String, front:Bool = false)
+		{
+			var mySpine:SkeletonSprite = null;
+			if(game.modchartSpines.exists(tag)) {
+				var spine = game.modchartSpines.get(tag);
+				if(spine != null) mySpine = cast(spine, SkeletonSprite);
+			}
+			else if(game.variables.exists(tag)) {
+				var spine = game.variables.get(tag);
+				if(spine != null) mySpine = cast(spine, SkeletonSprite);
+			}
+			if(mySpine == null) return false;
+
+			if(front)
+				LuaUtils.getTargetInstance().add(mySpine);
+			else
+			{
+				if(!game.isDead)
+					game.insert(game.members.indexOf(LuaUtils.getLowestCharacterGroup()), mySpine);
+				else
+					GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), mySpine);
+			}
+			return true;
+		});
+
 		Lua_helper.add_callback(lua, "setGraphicSize", function(obj:String, x:Int, y:Int = 0, updateHitbox:Bool = true) {
 			if(game.getLuaObject(obj)!=null) {
 				var shit:FlxSprite = game.getLuaObject(obj);

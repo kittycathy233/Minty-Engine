@@ -369,6 +369,20 @@ class LuaUtils
 		#end
 	}
 
+	public static function resetSpineTag(tag:String) {
+		#if LUA_ALLOWED
+		if(!PlayState.instance.modchartSprites.exists(tag)) {
+			return;
+		}
+
+		var target:ModchartSpine = PlayState.instance.modchartSpines.get(tag);
+		target.kill();
+		PlayState.instance.remove(target, true);
+		target.destroy();
+		PlayState.instance.modchartSprites.remove(tag);
+		#end
+	}
+
 	public static function cancelTween(tag:String) {
 		#if LUA_ALLOWED
 		if(PlayState.instance.modchartTweens.exists(tag)) {

@@ -90,35 +90,35 @@ class MainMenuState extends MusicBeatState
 			menuItem.screenCenter(X);
 		}
 
-		var fnfRechartVer:FlxText = new FlxText(12, FlxG.height - 130, 0, "FNF Recharted v0.0.0.20250713", 12);
-		fnfRechartVer.scrollFactor.set();
-		fnfRechartVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(fnfRechartVer);
+		// var fnfRechartVer:FlxText = new FlxText(12, FlxG.height - 130, 0, "FNF Recharted v0.0.0.20250713", 12);
+		// fnfRechartVer.scrollFactor.set();
+		// fnfRechartVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		// add(fnfRechartVer);
 
-		var mrVer:FlxText = new FlxText(12, FlxG.height - 110, 0, "Minty Engine v" + mtEngineVersion, 12);
+		// var spinerVer:FlxText = new FlxText(12, FlxG.height - 90, 0, "Spine Runtime v4.2", 12);
+		// spinerVer.scrollFactor.set();
+		// spinerVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		// add(spinerVer);
+
+		// var ekVer:FlxText = new FlxText(12, FlxG.height - 70, 0, "Extra Keys v" + extraKeysVersion, 12);
+		// ekVer.scrollFactor.set();
+		// ekVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		// add(ekVer);
+
+		// var fnfVer:FlxText = new FlxText(12, FlxG.height - 30, 0, "Friday Night Funkin' v0.2.8"/* + Application.current.meta.get('version')*/, 12);
+		// fnfVer.scrollFactor.set();
+		// fnfVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		// add(fnfVer);
+
+		var mrVer:FlxText = new FlxText(12, FlxG.height - 50, 0, "Minty Engine v" + mtEngineVersion, 12);
 		mrVer.scrollFactor.set();
 		mrVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(mrVer);
 
-		var spinerVer:FlxText = new FlxText(12, FlxG.height - 90, 0, "Spine Runtime v4.2", 12);
-		spinerVer.scrollFactor.set();
-		spinerVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(spinerVer);
-
-		var ekVer:FlxText = new FlxText(12, FlxG.height - 70, 0, "Extra Keys v" + extraKeysVersion, 12);
-		ekVer.scrollFactor.set();
-		ekVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(ekVer);
-
-		var psychVer:FlxText = new FlxText(12, FlxG.height - 50, 0, "Psych Engine v" + psychEngineVersion, 12);
+		var psychVer:FlxText = new FlxText(12, FlxG.height - 30, 0, "Psych Engine v" + psychEngineVersion, 12);
 		psychVer.scrollFactor.set();
 		psychVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(psychVer);
-
-		var fnfVer:FlxText = new FlxText(12, FlxG.height - 30, 0, "Friday Night Funkin' v0.2.8"/* + Application.current.meta.get('version')*/, 12);
-		fnfVer.scrollFactor.set();
-		fnfVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(fnfVer);
 		changeItem();
 
 		#if ACHIEVEMENTS_ALLOWED

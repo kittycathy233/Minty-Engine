@@ -2034,6 +2034,8 @@ class PlayState extends MusicBeatState
 			event.value2,
 			event.value3,
 			event.value4,
+			event.value5,
+			event.value6,
 			event.strumTime
 		], true, [], [0]);
 		if (returnedValue != null && returnedValue != 0 && returnedValue != LuaUtils.Function_Continue)
@@ -2060,7 +2062,9 @@ class PlayState extends MusicBeatState
 			value1: event[1][i][1],
 			value2: event[1][i][2],
 			value3: event[1][i][3],
-			value4: event[1][i][4]
+			value4: event[1][i][4],
+			value5: event[1][i][5],
+			value6: event[1][i][6]
 		};
 		eventNotes.push(subEvent);
 		eventPushed(subEvent);
@@ -2070,6 +2074,8 @@ class PlayState extends MusicBeatState
 			subEvent.value2 != null ? subEvent.value2 : '',
 			subEvent.value3 != null ? subEvent.value3 : '',
 			subEvent.value4 != null ? subEvent.value4 : '',
+			subEvent.value5 != null ? subEvent.value5 : '',
+			subEvent.value6 != null ? subEvent.value6 : '',
 			subEvent.strumTime
 		]);
 	}
@@ -2867,17 +2873,27 @@ class PlayState extends MusicBeatState
 			if (eventNotes[0].value4 != null)
 				value4 = eventNotes[0].value4;
 
-			triggerEvent(eventNotes[0].event, value1, value2, value3, value4, leStrumTime, false); // false表示这是来自PlayState的事件
+			var value5:String = '';
+			if (eventNotes[0].value5 != null)
+				value5 = eventNotes[0].value5;
+
+			var value6:String = '';
+			if (eventNotes[0].value6 != null)
+				value6 = eventNotes[0].value6;
+
+			triggerEvent(eventNotes[0].event, value1, value2, value3, value4, value5, value6, leStrumTime, false); // false表示这是来自PlayState的事件
 			eventNotes.shift();
 		}
 	}
 
-	public function triggerEvent(eventName:String, value1:String, value2:String, value3:String, value4:String, strumTime:Float, ?isLuaEvent:Bool = false)
+	public function triggerEvent(eventName:String, value1:String, value2:String, value3:String, value4:String, value5:String, value6:String, strumTime:Float, ?isLuaEvent:Bool = false)
 	{
 		var flValue1:Null<Float> = Std.parseFloat(value1);
 		var flValue2:Null<Float> = Std.parseFloat(value2);
 		var flValue3:Null<Float> = Std.parseFloat(value3);
 		var flValue4:Null<Float> = Std.parseFloat(value4);
+		var flValue5:Null<Float> = Std.parseFloat(value5);
+		var flValue6:Null<Float> = Std.parseFloat(value6);
 		if (Math.isNaN(flValue1))
 			flValue1 = null;
 		if (Math.isNaN(flValue2))
@@ -2886,6 +2902,10 @@ class PlayState extends MusicBeatState
 			flValue3 = null;
 		if (Math.isNaN(flValue4))
 			flValue4 = null;
+		if (Math.isNaN(flValue5))
+			flValue5 = null;
+		if (Math.isNaN(flValue6))
+			flValue6 = null;
 
 		/*if (chartingMode) {
 			var eventText = new FlxText(20, chartingInfo.y + chartingInfo.height + 20 + (eventAlerts.length * 30), FlxG.width - 40, 
@@ -3276,7 +3296,7 @@ class PlayState extends MusicBeatState
 			case 'Change Window Title':
 				if (value1 == null || value1.trim() == '')
 				{
-					Application.current.window.title = 'PE: EK: M.R.Extended'; // 空值时恢复默认
+					Application.current.window.title = 'Minty Engine'; // 空值时恢复默认
 				}
 				else
 				{
@@ -3423,8 +3443,8 @@ class PlayState extends MusicBeatState
 		deathCounter = 0;
 		seenCutscene = false;
 
-		// resetFPSVarPosition();	暂时不用了
-		Application.current.window.title = 'PE: EK: M.R.Extended';
+		// resetFPSVarPosition();
+		//Application.current.window.title = 'PE: EK: M.R.Extended';
 
 		#if ACHIEVEMENTS_ALLOWED
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';

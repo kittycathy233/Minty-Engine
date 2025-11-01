@@ -200,7 +200,7 @@ function onMoveCamera(focus:String)
 
 
 // Event notes hooks
-function onEvent(name:String, value1:String, value2:String, value3:String, value4:String, strumTime:Float)
+function onEvent(name:String, value1:String, value2:String, value3:String, value4:String, value5:String, value6:String, strumTime:Float)
 {
 	// event note triggered
 	// triggerEvent() does not call this function!!
@@ -208,7 +208,7 @@ function onEvent(name:String, value1:String, value2:String, value3:String, value
 	// print('Event triggered: ', name, value1, value2, value3, value4, strumTime);
 }
 
-function onEventPushed(name:String, value1:String, value2:String, value3:String, value4:String, strumTime:Float)
+function onEventPushed(name:String, value1:String, value2:String, value3:String, value4:String, value5:String, value6:String, strumTime:Float)
 {
 	// Called for every event note, recommended to precache assets
 }

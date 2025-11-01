@@ -2,7 +2,7 @@
 <project>
 	<!-- _________________________ Application Settings _________________________ -->
 
-	<app title="Minty Engine" file="Minty Engine" packageName="com.kittycathy.minty" package="com.kittycathy.minty" main="Main" version="0.1.2" company="KittyCathy" />
+	<app title="Minty Engine" file="Minty Engine" packageName="com.kittycathy.minty" package="com.kittycathy.minty" main="Main" version="0.1.2"/>
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
 	<set name="APP_ID" value="0x0100f6c013bbc114" />
@@ -23,7 +23,7 @@
 	<define name="MODS_ALLOWED" if="desktop" />
 	<define name="HSCRIPT_ALLOWED" if="desktop" />
 	<define name="LUA_ALLOWED" if="desktop" />
-	<define name="ACHIEVEMENTS_ALLOWED" />
+	<!--define name="ACHIEVEMENTS_ALLOWED" /-->
 	<!--define name="DISCORD_ALLOWED" /-->
 	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
 
@@ -49,12 +49,6 @@
 
 	<!--Switch-specific-->
 	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
-
-	<!-- 启用高质量渲染 -->
-	<window allow-high-dpi="true" /> <!-- 支持高 DPI 显示器 -->
-	<haxedef name="lime-bitmap-smoothing" /> <!-- 强制启用平滑 -->
-	<haxedef name="openfl-bitmap-smoothing" /> <!-- OpenFL 平滑 -->
-	<set name="lime-legacy-bitmap-smoothing" value="false" /> <!-- 禁用旧版平滑（避免冲突） -->
 
 	<!-- _____________________________ Path Settings ____________________________ -->
 
@@ -121,7 +115,7 @@
 	<!-- ______________________________ Haxedefines _____________________________ -->
 
 	<!--Enable the Flixel core recording system-->
-	<!--<haxedef name="FLX_RECORD" />-->
+	<haxedef name="FLX_RECORD" />
 
 	<!--Disable the right and middle mouse buttons-->
 	<!-- <haxedef name="FLX_NO_MOUSE_ADVANCED" /> -->
@@ -132,7 +126,7 @@
 	<!--Optimise inputs, be careful you will get null errors if you don't use conditionals in your game-->
 	<!-- <haxedef name="FLX_NO_MOUSE" if="mobile" /> -->
 	<!-- <haxedef name="FLX_NO_KEYBOARD" if="mobile" /> -->
-	<!-- <haxedef name="FLX_NO_TOUCH" if="desktop" /> -->
+	<haxedef name="FLX_NO_TOUCH" if="desktop" />
 	<!--<haxedef name="FLX_NO_GAMEPAD" />-->
 
 	<!--Disable the Flixel core sound tray-->

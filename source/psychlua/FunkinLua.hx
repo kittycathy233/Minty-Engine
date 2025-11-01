@@ -801,14 +801,16 @@ class FunkinLua {
 		});
 
 		// others
-		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, arg1:Dynamic, arg2:Dynamic, arg3:Dynamic, arg4:Dynamic) {
+		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, arg1:Dynamic, arg2:Dynamic, arg3:Dynamic, arg4:Dynamic, arg5:Dynamic, arg6:Dynamic) {
 			var value1:String = arg1;
 			var value2:String = arg2;
 			var value3:String = arg3;
 			var value4:String = arg4;
-			//game.triggerEvent(name, value1, value2, value3, value4, Conductor.songPosition);
-			game.triggerEvent(name, arg1, arg2, arg3, arg4, Conductor.songPosition, true); // 最后的true表示这是来自FunkinLua的事件
-			//trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2, ' + value3 + ', ' + value4);
+			var value5:String = arg5;
+			var value6:String = arg6;
+			//game.triggerEvent(name, value1, value2, value3, value4, value5, value6, Conductor.songPosition);
+			game.triggerEvent(name, arg1, arg2, arg3, arg4, arg5, arg6, Conductor.songPosition, true); // 最后的true表示这是来自FunkinLua的事件
+			trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2 + ', ' + value3 + ', ' + value4 + ', ' + value5 + ', ' + value6);
 			return true;
 		});
 

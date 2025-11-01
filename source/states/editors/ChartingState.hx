@@ -150,6 +150,8 @@ class ChartingState extends MusicBeatState
 	var value2InputText:FlxUIInputText;
 	var value3InputText:FlxUIInputText;
 	var value4InputText:FlxUIInputText;
+	var value5InputText:FlxUIInputText;
+	var value6InputText:FlxUIInputText;
 	var currentSongName:String;
 
 	var zoomTxt:FlxText;
@@ -213,8 +215,8 @@ class ChartingState extends MusicBeatState
 	{
 
 		if (Main.fpsVar != null) {
-    		Main.fpsVar.baseX = FlxG.width - 160; // 修改 X 坐标
-    		Main.fpsVar.x = FlxG.width - 160;     // 同时更新实际位置（可选）
+    		Main.fpsVar.baseX = Std.int(FlxG.width * 0.9); // 基于窗口宽度的90%位置
+    		Main.fpsVar.x = Std.int(FlxG.width * 0.9);     // 同时更新实际位置
     		Main.fpsVar.charting = true; // 设置 charting 为 true
 		}
 
@@ -351,7 +353,7 @@ class ChartingState extends MusicBeatState
 
 		UI_box = new FlxUITabMenu(null, tabs, true);
 
-		UI_box.resize(350, 400);
+		UI_box.resize(400, 500); // 增加高度以适应两列布局
 		UI_box.x = FlxG.width - UI_box.width - 30;
 		UI_box.y = FlxG.height / 2 - UI_box.height / 2;
 		UI_box.scrollFactor.set();
@@ -425,7 +427,7 @@ class ChartingState extends MusicBeatState
 
 		zoomTxt = new FlxText(10, FlxG.height - 30, 0, "Zoom: 1 / 1", 16);
 		zoomTxt.scrollFactor.set();
-		//add(zoomTxt);
+		//add(zoomTxt); 已经有了
 
 		updateGrid();
 		super.create();
@@ -1105,24 +1107,34 @@ class ChartingState extends MusicBeatState
 		});
 		blockPressWhileScrolling.push(eventDropDown);
 
-		var text:FlxText = new FlxText(30, 90, 0, "Value 1:");
-		tab_group_event.add(text);
-		value1InputText = new FlxUIInputText(25, 110, 100, "");
+		var text1:FlxText = new FlxText(30, 90, 0, "Value 1:");
+		tab_group_event.add(text1);
+		value1InputText = new FlxUIInputText(25, 110, 85, "");
 		blockPressWhileTypingOn.push(value1InputText);
 
-		var text:FlxText = new FlxText(150, 90, 0, "Value 2:");
-		tab_group_event.add(text);
-		value2InputText = new FlxUIInputText(145, 110, 100, "");
+		var text2:FlxText = new FlxText(130, 90, 0, "Value 2:");
+		tab_group_event.add(text2);
+		value2InputText = new FlxUIInputText(125, 110, 85, "");
 		blockPressWhileTypingOn.push(value2InputText);
 
-		var text:FlxText = new FlxText(30, 130, 0, "Value 3:");
-		tab_group_event.add(text);
-		value3InputText = new FlxUIInputText(25, 150, 100, "");
+		var text3:FlxText = new FlxText(230, 90, 0, "Value 3:");
+		tab_group_event.add(text3);
+		value3InputText = new FlxUIInputText(225, 110, 85, "");
 		blockPressWhileTypingOn.push(value3InputText);
 
-		var text:FlxText = new FlxText(150, 130, 0, "Value 4:");
-		tab_group_event.add(text);
-		value4InputText = new FlxUIInputText(145, 150, 100, "");
+		var text4:FlxText = new FlxText(30, 130, 0, "Value 4:");
+		tab_group_event.add(text4);
+		value4InputText = new FlxUIInputText(25, 150, 85, "");
+		blockPressWhileTypingOn.push(value4InputText);
+
+		var text5:FlxText = new FlxText(130, 130, 0, "Value 5:");
+		tab_group_event.add(text5);
+		value5InputText = new FlxUIInputText(125, 150, 85, "");
+		blockPressWhileTypingOn.push(value3InputText);
+
+		var text6:FlxText = new FlxText(230, 130, 0, "Value 6:");
+		tab_group_event.add(text6);
+		value6InputText = new FlxUIInputText(225, 150, 85, "");
 		blockPressWhileTypingOn.push(value4InputText);
 
 		// New event buttons
@@ -1196,7 +1208,7 @@ class ChartingState extends MusicBeatState
 		setAllLabelsOffset(moveRightButton, -30, 0);
 		tab_group_event.add(moveRightButton);
 
-		selectedEventText = new FlxText(addButton.x - 100, addButton.y + addButton.height + 6, (moveRightButton.x - addButton.x) + 186, 'Selected Event: None');
+		selectedEventText = new FlxText(addButton.x - 100, addButton.y - addButton.height, (moveRightButton.x - addButton.x) + 186, 'Selected Event: None');
 		selectedEventText.alignment = CENTER;
 		tab_group_event.add(selectedEventText);
 
@@ -1205,6 +1217,8 @@ class ChartingState extends MusicBeatState
 		tab_group_event.add(value2InputText);
 		tab_group_event.add(value3InputText);
 		tab_group_event.add(value4InputText);
+		tab_group_event.add(value5InputText);
+		tab_group_event.add(value6InputText);
 		tab_group_event.add(eventDropDown);
 
 		UI_box.addGroup(tab_group_event);
@@ -1910,6 +1924,20 @@ class ChartingState extends MusicBeatState
 					if(curSelectedNote[1][curEventSelected] != null)
 					{
 						curSelectedNote[1][curEventSelected][4] = value4InputText.text;
+						updateGrid();
+					}
+				}
+				else if(sender == value5InputText) {
+					if(curSelectedNote[1][curEventSelected] != null)
+					{
+						curSelectedNote[1][curEventSelected][5] = value5InputText.text;
+						updateGrid();
+					}
+				}
+				else if(sender == value6InputText) {
+					if(curSelectedNote[1][curEventSelected] != null)
+					{
+						curSelectedNote[1][curEventSelected][6] = value6InputText.text;
 						updateGrid();
 					}
 				}
@@ -3078,13 +3106,16 @@ if (isMoving)
                     value2InputText.text = eventData[2] != null ? eventData[2] : "";
                     value3InputText.text = eventData[3] != null ? eventData[3] : "";
                     value4InputText.text = eventData[4] != null ? eventData[4] : "";
+                    value5InputText.text = eventData[5] != null ? eventData[5] : "";
+                    value6InputText.text = eventData[6] != null ? eventData[6] : "";
                 }
             }
             else
             {
-                trace("事件数据无效，已重置UI");
+                trace("Event data invalid, UI has been reset");
                 value1InputText.text = value2InputText.text = 
-                value3InputText.text = value4InputText.text = "";
+				value3InputText.text = value4InputText.text = 
+                value5InputText.text = value6InputText.text = "";
             }
         }
 			strumTimeInputText.text = '' + curSelectedNote[0];
@@ -3443,7 +3474,9 @@ if (isMoving)
 			var text2 = value2InputText.text;
 			var text3 = value3InputText.text;
 			var text4 = value4InputText.text;
-			_song.events.push([noteStrum, [[event, text1, text2, text3, text4]]]);
+			var text5 = value5InputText.text;
+			var text6 = value6InputText.text;
+			_song.events.push([noteStrum, [[event, text1, text2, text3, text4, text5, text6]]]);
 			curSelectedNote = _song.events[_song.events.length - 1];
 			curEventSelected = 0;
 		}

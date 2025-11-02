@@ -45,6 +45,8 @@ import debug.FPSCounter;
 import flash.media.Sound;
 #end
 
+import openfl.system.System;
+
 @:access(flixel.sound.FlxSound._sound)
 @:access(openfl.media.Sound.__buffer)
 
@@ -165,6 +167,16 @@ class ChartingState extends MusicBeatState
 	private var uiBoxLerpRatio:Float = 0.15; // 插值比例 (0.1-0.5之间更丝滑)
 	private var uiBoxX:Float = 0; // UI Box的宽度
 
+	// 背景图
+	public var bg:FlxSprite;
+
+	// 背景图缩放效果
+	private var bgScaleTarget:Float = 1.0; // 目标缩放值
+	private var bgScaleCurrent:Float = 1.0; // 当前缩放值
+	private var bgScaleLerpRatio:Float = 0.1; // 缩放插值比例
+	private var lastBeat:Int = -1; // 上次节拍
+	private var lastSectionInstance:Int = -1; // 上次段落（实例变量）
+
 	var specialInstInputText:FlxUIInputText;
 	var specialVocalInputText:FlxUIInputText;
 	//var specialVocalOppInputText:FlxUIInputText;
@@ -211,13 +223,23 @@ class ChartingState extends MusicBeatState
 	var text:String = "";
 	public static var vortex:Bool = false;
 	public var mouseQuant:Bool = false;
+
+	// ChartingState FPS显示相关变量
+	private var chartingFpsText:FlxText;
+	private var chartingMemText:FlxText;
+	private var chartingPeakText:FlxText;
+	private var chartingFpsBg:FlxSprite;
+	private var chartingFpsTimes:Array<Float> = [];
+	private var chartingCurrentFPS:Int = 0;
+	private var chartingMemoryPeak:Float = 0;
+	private var chartingFpsUpdateTimer:Float = 0;
+	private static final CHARTING_FPS_UPDATE_INTERVAL:Float = 0.2;
 	override function create()
 	{
 
 		if (Main.fpsVar != null) {
-    		Main.fpsVar.baseX = Std.int(FlxG.width * 0.9); // 基于窗口宽度的90%位置
-    		Main.fpsVar.x = Std.int(FlxG.width * 0.9);     // 同时更新实际位置
-    		Main.fpsVar.charting = true; // 设置 charting 为 true
+    		Main.fpsVar.visible = false;
+			Main.fpsVar.updating = false;
 		}
 
 		if (PlayState.SONG != null)
@@ -252,10 +274,10 @@ class ChartingState extends MusicBeatState
 
 		vortex = FlxG.save.data.chart_vortex;
 		ignoreWarnings = FlxG.save.data.ignoreWarnings;
-		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.scrollFactor.set();
-		bg.color = 0xFF222222;
+		bg.color = 0xFF575757;
 		add(bg);
 
 		gridLayer = new FlxTypedGroup<FlxSprite>();
@@ -364,7 +386,7 @@ class ChartingState extends MusicBeatState
 		//UI_box.tabDownColor = 0x0080ff; // 鼠标按下时的颜色
 		//UI_box.tabNormalColor = 0xFF6A6A; // 普通状态的颜色
 
-		UI_box.dragEnabled = true;
+		//UI_box.dragEnabled = true; // 注释化拖动功能
 
 		/*text =
 		"W/S or Mouse Wheel - Change Conductor's strum time
@@ -430,6 +452,10 @@ class ChartingState extends MusicBeatState
 		//add(zoomTxt); 已经有了
 
 		updateGrid();
+		
+		// 创建ChartingState专用的FPS显示
+		createChartingFPSDisplay();
+		
 		super.create();
 	}
 
@@ -1987,6 +2013,32 @@ class ChartingState extends MusicBeatState
 	{
 		curStep = recalculateSteps();
 
+		// 背景图缩放效果
+		if (FlxG.sound.music.playing && bg != null) {
+			var curBeat:Int = Math.floor(curStep / 4);
+			
+			// 检测节拍变化
+			if (curBeat != lastBeat) {
+				lastBeat = curBeat;
+				// 每节拍立即小幅度放大
+				bg.scale.set(1.02, 1.02);
+			}
+			
+			// 检测段落变化
+			if (curSec != lastSectionInstance) {
+				lastSectionInstance = curSec;
+				// 每段落立即较大幅度放大
+				bg.scale.set(1.1, 1.1);
+			}
+			
+			// 平滑插值回到默认大小
+			bg.scale.set(FlxMath.lerp(bg.scale.x, 1.0, bgScaleLerpRatio), FlxMath.lerp(bg.scale.y, 1.0, bgScaleLerpRatio));
+			
+			// 更新碰撞盒并居中缩放
+			bg.updateHitbox();
+			bg.offset.set(bg.frameWidth * 0.5 * (bg.scale.x - 1), bg.frameHeight * 0.5 * (bg.scale.y - 1));
+		}
+
 		camPos.x = -80 + (GRID_SIZE * ((_song.mania + 1) * 2));
 
 		if(FlxG.sound.music.time < 0) {
@@ -2096,17 +2148,10 @@ if (FlxG.keys.justPressed.F3)
     uiBoxTargetX = uiBoxVisible ? uiBoxOriginalX : FlxG.width + 10;
 }
 
-	if (FlxG.mouse.pressed)
-	{
-		// 记录当前UI Box的位置
-		uiBoxX = UI_box.x;
-		uiBoxTargetX = uiBoxX;
-	}
-		// 2. 平滑移动(?)
-		var isMoving:Bool = Math.abs(UI_box.x - uiBoxTargetX) > 1;
+	// 2. 平滑移动（仅用于F3键效果）
+	var isMoving:Bool = Math.abs(UI_box.x - uiBoxTargetX) > 1;
 if (isMoving)
 {
-	if (FlxG.mouse.pressed) return;
     // 使用插值实现平滑移动
     UI_box.x = FlxMath.lerp(UI_box.x, uiBoxTargetX, uiBoxLerpRatio);
     
@@ -2116,6 +2161,7 @@ if (isMoving)
     }
 }
 
+		/*
 		// 3. 移动时禁用交互
 		var isMoving:Bool = Math.abs(UI_box.x - uiBoxTargetX) > 1;
 			UI_box.active = !isMoving;
@@ -2125,6 +2171,7 @@ if (isMoving)
 				stepper.active = !isMoving;
 			for (dropdown in blockPressWhileScrolling)
 				dropdown.active = !isMoving;
+		*/
 
 		var blockInput:Bool = false;
 		for (inputText in blockPressWhileTypingOn) {
@@ -2193,10 +2240,8 @@ if (isMoving)
 				//if(_song.stage == null) _song.stage = stageDropDown.selectedLabel;
 				StageData.loadDirectory(_song);
 				if (Main.fpsVar != null) {
-    				Main.fpsVar.baseX = 10; // 修改 X 坐标
-    				Main.fpsVar.x = 10;     // 同时更新实际位置（可选）
-					Main.fpsVar.charting = false; // 设置 charting 为 false
-
+					Main.fpsVar.visible = true;
+					Main.fpsVar.updating = true;
 				}
 				LoadingState.loadAndSwitchState(new PlayState());
 			}
@@ -2218,10 +2263,8 @@ if (isMoving)
 				autosaveSong();
 				PlayState.chartingMode = false;
 				if (Main.fpsVar != null) {
-    				Main.fpsVar.baseX = 10; // 修改 X 坐标
-    				Main.fpsVar.x = 10;     // 同时更新实际位置（可选）
-					Main.fpsVar.charting = false; // 设置 charting 为 false
-
+					Main.fpsVar.visible = true;
+					Main.fpsVar.updating = true;
 				}
 				MusicBeatState.switchState(new states.editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
@@ -2253,7 +2296,7 @@ if (isMoving)
 				else
 				{
 					UI_box.selected_tab += 1;
-					if (UI_box.selected_tab >= 5)
+					if (UI_box.selected_tab >= 6)
 						UI_box.selected_tab = 0;
 				}
 			}
@@ -2509,7 +2552,8 @@ if (isMoving)
 		"\n\nBeat Snap: " + quantization + "th" +
 		"\nZoom: " + (zoomThing == null ? '1 / 1' : zoomThing);
 
-		var playedSound:Array<Bool> = [false, false, false, false]; //Prevents ouchy GF sex sounds
+		var playedSoundBf:Array<Bool> = [false, false, false, false]; //Prevents ouchy GF sex sounds for BF
+		var playedSoundDad:Array<Bool> = [false, false, false, false]; //Prevents ouchy GF sex sounds for Dad
 		curRenderedNotes.forEachAlive(function(note:Note) {
 			note.alpha = 1;
 			if(curSelectedNote != null) {
@@ -2532,16 +2576,28 @@ if (isMoving)
 					if(noteDataToCheck > -1 && note.mustPress != _song.notes[curSec].mustHitSection) noteDataToCheck += (_song.mania + 1);
 						strumLineNotes.members[noteDataToCheck].playAnim('confirm', true);
 						strumLineNotes.members[noteDataToCheck].resetAnim = ((note.sustainLength / 1000) + 0.15) / playbackSpeed;
-					if(!playedSound[data]) {
-						if(note.hitsoundChartEditor && ((playSoundBf.checked && note.mustPress) || (playSoundDad.checked && !note.mustPress)))
-						{
-							var soundToPlay = note.hitsound;
+					if(note.hitsoundChartEditor) {
+						if(playSoundBf.checked && note.mustPress && !playedSoundBf[data]) {
+							var soundToPlay = 'hitsoundP';
 							if(_song.player1 == 'gf') //Easter egg
 								soundToPlay = 'GF_' + Std.string(data + 1);
 
-							FlxG.sound.play(Paths.sound(soundToPlay)).pan = note.noteData < (_song.mania + 1)? -0.3 : 0.3; //would be coolio
-							playedSound[data] = true;
+							// 为玩家箭头创建独立的音效实例
+							var bfSound = FlxG.sound.play(Paths.sound(soundToPlay), 1);
+							bfSound.pan = note.noteData < (_song.mania + 1)? -0.3 : 0.3;
+							playedSoundBf[data] = true;
 						}
+						else if(playSoundDad.checked && !note.mustPress && !playedSoundDad[data]) {
+							var soundToPlay = 'hitsound';
+							if(_song.player1 == 'gf') //Easter egg
+								soundToPlay = 'GF_' + Std.string(data + 1);
+
+							// 为对手箭头创建独立的音效实例
+							var dadSound = FlxG.sound.play(Paths.sound(soundToPlay), 0.5);
+							dadSound.pan = note.noteData < (_song.mania + 1)? -0.3 : 0.3;
+							playedSoundDad[data] = true;
+						}
+					}
 
 						data = note.noteData;
 						if(note.mustPress != _song.notes[curSec].mustHitSection)
@@ -2551,7 +2607,7 @@ if (isMoving)
 					}
 				}
 			}
-		});
+		);
 
 		if(metronome.checked && lastConductorPos != Conductor.songPosition) {
 			var metroInterval:Float = 60 / metronomeStepper.value;
@@ -2563,6 +2619,10 @@ if (isMoving)
 			}
 		}
 		lastConductorPos = Conductor.songPosition;
+		
+		// 更新ChartingState专用的FPS显示
+		updateChartingFPSDisplay();
+		
 		super.update(elapsed);
 	}
 
@@ -3683,6 +3743,67 @@ if (isMoving)
 		
 		if(_song.notes[section] != null) val = _song.notes[section].sectionBeats;
 		return val != null ? val : 4;
+	}
+
+	function createChartingFPSDisplay():Void
+	{
+		// 创建背景
+		chartingFpsBg = new FlxSprite().makeGraphic(1, 1, 0x80000000);
+		chartingFpsBg.scrollFactor.set();
+		chartingFpsBg.antialiasing = ClientPrefs.data.antialiasing;
+		add(chartingFpsBg);
+
+		// 创建FPS文本
+		chartingFpsText = new FlxText(0, 0, 0, "", 16);
+		chartingFpsText.setFormat(null, 16, FlxColor.WHITE, LEFT);
+		chartingFpsText.scrollFactor.set();
+		add(chartingFpsText);
+
+		// 创建内存文本
+		chartingMemText = new FlxText(0, 0, 0, "", 16);
+		chartingMemText.setFormat(null, 16, FlxColor.WHITE, LEFT);
+		chartingMemText.scrollFactor.set();
+		add(chartingMemText);
+
+		// 创建内存峰值文本
+		chartingPeakText = new FlxText(0, 0, 0, "", 16);
+		chartingPeakText.setFormat(null, 16, FlxColor.WHITE, LEFT);
+		chartingPeakText.scrollFactor.set();
+		add(chartingPeakText);
+
+		// 初始位置设置
+		updateChartingFPSDisplayPosition();
+	}
+
+	function updateChartingFPSDisplayPosition():Void
+	{
+		var padding:Int = 10;
+		var textHeight:Int = 18;
+		
+		chartingFpsText.setPosition(padding, FlxG.height - padding - textHeight);
+		chartingMemText.setPosition(padding, FlxG.height - padding - textHeight * 2);
+		chartingPeakText.setPosition(padding, FlxG.height - padding - textHeight * 3);
+	}
+
+	function updateChartingFPSDisplay():Void
+	{
+		// FPS计算
+		final now:Float = haxe.Timer.stamp() * 1000;
+		chartingFpsTimes.push(now);
+		while (chartingFpsTimes[0] < now - 1000) chartingFpsTimes.shift();
+		chartingCurrentFPS = chartingFpsTimes.length < FlxG.updateFramerate ? chartingFpsTimes.length : FlxG.updateFramerate;
+
+		// 内存计算
+		var currentMemory:Float = cast(System.totalMemory, UInt);
+		if (currentMemory > chartingMemoryPeak) {
+			chartingMemoryPeak = currentMemory;
+		}
+
+		chartingFpsText.text = '${chartingCurrentFPS}FPS';
+		chartingMemText.text = flixel.util.FlxStringUtil.formatBytes(currentMemory);
+		chartingPeakText.text = flixel.util.FlxStringUtil.formatBytes(chartingMemoryPeak);
+
+		updateChartingFPSDisplayPosition();
 	}
 }
 

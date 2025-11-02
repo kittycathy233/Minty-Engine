@@ -49,7 +49,7 @@ class FlxUITabMenu extends FlxUIGroup implements IResizable implements IFlxUICli
 	private var _dragJustStarted:Bool = false;
 
 	// 标签按钮颜色属性
-	public var tabNormalColor(default, set):Int = 0xCCCCCC;   // 正常状态颜色
+	public var tabNormalColor(default, set):Int = 0xFFFFFF;   // 正常状态颜色
 	public var tabDownColor(default, set):Int = 0x999999;     // 按下状态颜色
 	public var tabOverColor(default, set):Int = 0xDDDDDD;     // 悬停状态颜色
 	public var tabToggledColor(default, set):Int = 0xAAAAAA;  // 选中状态颜色

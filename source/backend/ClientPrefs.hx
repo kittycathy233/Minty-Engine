@@ -22,7 +22,8 @@ import states.TitleState;
 	public var splashAlpha:Float = 0.6;
 	public var lowQuality:Bool = false;
 	public var shaders:Bool = true;
-	public var cacheOnGPU:Bool = #if !switch false #else true #end; //From Stilic
+	//public var cacheOnGPU:Bool = #if !switch false #else true #end; //From Stilic
+	public var cacheOnGPU:Bool = true;
 	public var framerate:Int = 60;
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
@@ -116,7 +117,7 @@ import states.TitleState;
 	public var tabiBar: Bool = true;
 	public var infHealth: Bool = false;
 	public var botplayStyle:String = "Kade"; // vanila, psych, archive
-	public var showcaseStyle:String = "Kade";
+	public var showcaseStyle:String = "Psych";
 	public var fpstxtStyle:String = "Kade";
 	public var timebarStyle:String = "Kade";
 	

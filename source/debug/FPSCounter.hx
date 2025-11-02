@@ -17,7 +17,7 @@ class FPSCounter extends Sprite
     private var memoryPeak:Float = 0;
     @:noCompletion private var times:Array<Float>;
 
-    public var charting:Bool = false; // 检测是否在制谱器
+    public var updating:Bool = true;
 
     // 抖动效果相关
     var shakeTime:Float = 0;
@@ -112,94 +112,81 @@ class FPSCounter extends Sprite
     var deltaTimeout:Float = 0.0;
 
     private override function __enterFrame(deltaTime:Float):Void
-    {
-        if (deltaTimeout > 1000) {
-            deltaTimeout = 0.0;
-            return;
-        }
+	{
+		if (updating)
+		{
+			if (deltaTimeout > 1000)
+			{
+				deltaTimeout = 0.0;
+				return;
+			}
 
-        // FPS 计算
-        final now:Float = haxe.Timer.stamp() * 1000;
-        times.push(now);
-        while (times[0] < now - 1000) times.shift();
+			// FPS 计算
+			final now:Float = haxe.Timer.stamp() * 1000;
+			times.push(now);
+			while (times[0] < now - 1000)
+				times.shift();
 
-        currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
+			currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
 
-        // 延迟刷新逻辑
-        delayUpdateTimer += deltaTime / 1000;
-        if (delayUpdateTimer >= DELAY_UPDATE_INTERVAL) {
-            delayUpdateTimer = 0;
-            if (currentFPS > 0)
-                currentDelay = Math.fround(1000.0 / currentFPS * 10) / 10;
-            else
-                currentDelay = 0;
-        }
+			// 延迟刷新逻辑
+			delayUpdateTimer += deltaTime / 1000;
+			if (delayUpdateTimer >= DELAY_UPDATE_INTERVAL)
+			{
+				delayUpdateTimer = 0;
+				if (currentFPS > 0)
+					currentDelay = Math.fround(1000.0 / currentFPS * 10) / 10;
+				else
+					currentDelay = 0;
+			}
 
-        updateText();
-        deltaTimeout += deltaTime;
+			updateText();
+			deltaTimeout += deltaTime;
 
-        // 抖动效果
-        if (currentFPS < FlxG.drawFramerate * 0.8) {
-            shakeTime = 0.12;
-            shakeStrength = 0.8 + (FlxG.drawFramerate * 0.8 - currentFPS) * 0.03;
-        }
-        if (shakeTime > 0) {
-            shakeTime -= deltaTime / 1000;
-            this.x = baseX + (Math.random() - 0.5) * shakeStrength * 2;
-            this.y = baseY + (Math.random() - 0.5) * shakeStrength * 2;
-        } else {
-            this.x += (baseX - this.x) * 0.25;
-            this.y += (baseY - this.y) * 0.25;
-            if (Math.abs(this.x - baseX) < 0.1) this.x = baseX;
-            if (Math.abs(this.y - baseY) < 0.1) this.y = baseY;
-        }
+			// 抖动效果
+			if (currentFPS < FlxG.drawFramerate * 0.8)
+			{
+				shakeTime = 0.12;
+				shakeStrength = 0.8 + (FlxG.drawFramerate * 0.8 - currentFPS) * 0.03;
+			}
+			if (shakeTime > 0)
+			{
+				shakeTime -= deltaTime / 1000;
+				this.x = baseX + (Math.random() - 0.5) * shakeStrength * 2;
+				this.y = baseY + (Math.random() - 0.5) * shakeStrength * 2;
+			}
+			else
+			{
+				this.x += (baseX - this.x) * 0.25;
+				this.y += (baseY - this.y) * 0.25;
+				if (Math.abs(this.x - baseX) < 0.1)
+					this.x = baseX;
+				if (Math.abs(this.y - baseY) < 0.1)
+					this.y = baseY;
+			}
 
-        // 尺寸插值
-        var widthChanged = Math.abs(targetWidth - currentWidth) > SIZE_CHANGE_THRESHOLD;
-        var heightChanged = Math.abs(targetHeight - currentHeight) > SIZE_CHANGE_THRESHOLD;
-        
-        if (widthChanged || heightChanged) {
-            currentWidth += (targetWidth - currentWidth) * SIZE_LERP_FACTOR;
-            currentHeight += (targetHeight - currentHeight) * SIZE_LERP_FACTOR;
-            
-            if (Math.abs(targetWidth - currentWidth) < SIZE_CHANGE_THRESHOLD) currentWidth = targetWidth;
-            if (Math.abs(targetHeight - currentHeight) < SIZE_CHANGE_THRESHOLD) currentHeight = targetHeight;
-            
-            drawBackground();
-        }
-    }
+			// 尺寸插值
+			var widthChanged = Math.abs(targetWidth - currentWidth) > SIZE_CHANGE_THRESHOLD;
+			var heightChanged = Math.abs(targetHeight - currentHeight) > SIZE_CHANGE_THRESHOLD;
+
+			if (widthChanged || heightChanged)
+			{
+				currentWidth += (targetWidth - currentWidth) * SIZE_LERP_FACTOR;
+				currentHeight += (targetHeight - currentHeight) * SIZE_LERP_FACTOR;
+
+				if (Math.abs(targetWidth - currentWidth) < SIZE_CHANGE_THRESHOLD)
+					currentWidth = targetWidth;
+				if (Math.abs(targetHeight - currentHeight) < SIZE_CHANGE_THRESHOLD)
+					currentHeight = targetHeight;
+
+				drawBackground();
+			}
+		}
+	}
 
     public dynamic function updateText():Void {
         if (memoryMegas > memoryPeak) memoryPeak = memoryMegas;
 
-        if (charting)
-        {
-            // 制谱器模式 - 只显示FPS和内存峰值
-            tfFPS.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0x90D0FF, true);
-            tfFPS.text = 'FPS: ${currentFPS} / ${FlxG.drawFramerate}';
-            
-            tfPeak.defaultTextFormat = new TextFormat(getFontName(), BASE_SIZE, 0xF1A0FF, true);
-            tfPeak.text = 'MEM: ${flixel.util.FlxStringUtil.formatBytes(memoryPeak)}';
-            
-            // 隐藏其他字段
-            tfDelay.visible = false;
-            tfMem.visible = false;
-            tfVersion.visible = false;
-            
-            // 计算背景尺寸
-            var bgHeight = PADDING * 2 + ROW_HEIGHT * 2;
-            var maxTextWidth = Math.max(tfFPS.textWidth, tfPeak.textWidth);
-            
-            targetWidth = Std.int(maxTextWidth) + PADDING * 2 + 4;
-            targetHeight = bgHeight;
-            
-            // 更新文本位置
-            tfFPS.x = PADDING;
-            tfFPS.y = PADDING;
-            tfPeak.x = PADDING;
-            tfPeak.y = PADDING + ROW_HEIGHT;
-        }
-        else
         {
             // 正常模式 - 显示所有信息
             var percent:Float = currentFPS / FlxG.drawFramerate;

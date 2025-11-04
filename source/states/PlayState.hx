@@ -140,6 +140,10 @@ class PlayState extends MusicBeatState
 	var opponentKeyCount:Int = -114; // 初始的mania值，默认为-114 (臭死力哼哼啊啊啊啊啊)
 	var playerKeyCount:Int = -114; // 初始的mania值，默认为-114 (臭死力哼哼啊啊啊啊啊)
 
+	// vsliceAnim功能相关变量
+	var vsliceAnimActiveKeys:Array<Bool> = []; // 跟踪每个按键是否处于vsliceAnim激活状态
+	var vsliceAnimCurrentAnim:Array<String> = []; // 跟踪每个按键当前播放的动画
+
 	public var ratingStuff:Array<Dynamic> = [
 		['You Suck!', 0.2], // From 0% to 19%
 		['Shit', 0.4], // From 20% to 39%
@@ -741,7 +745,14 @@ class PlayState extends MusicBeatState
 			scoreTxt.screenCenter(X);
 			scoreTxt.scrollFactor.set();
 			scoreTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			scoreTxt.visible = !ClientPrefs.data.hideHud;
+		}
+		else if (ClientPrefs.data.scoretxtstyle == 'V-Slice')
+		{
+			scoreTxt = new FlxText(0, healthBar.y + 40, 0, "", 16);
+			scoreTxt.screenCenter(X);
+			scoreTxt.scrollFactor.set();
+			scoreTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			scoreTxt.borderSize = 1.25;
 		}
 		else
 		{
@@ -749,8 +760,9 @@ class PlayState extends MusicBeatState
 			scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			scoreTxt.scrollFactor.set();
 			scoreTxt.borderSize = 1.25;
-			scoreTxt.visible = !ClientPrefs.data.hideHud;
 		}
+		scoreTxt.visible = !ClientPrefs.data.hideHud;
+
 		updateScore(false);
 		uiGroup.add(scoreTxt);
 
@@ -854,6 +866,15 @@ class PlayState extends MusicBeatState
 
 		cacheCountdown();
 		cachePopUpScore();
+
+		// 初始化vsliceAnim相关变量
+		var maxKeys:Int = SONG.mania + 1;
+		vsliceAnimActiveKeys = [];
+		vsliceAnimCurrentAnim = [];
+		for (i in 0...maxKeys) {
+			vsliceAnimActiveKeys.push(false);
+			vsliceAnimCurrentAnim.push('');
+		}
 
 		/*if (chartingMode) {
 			// 调试信息初始化
@@ -1470,6 +1491,10 @@ class PlayState extends MusicBeatState
 				+ ' | Accuracy: ${percent}% | (${ratingFC}) ${ratingNameKE}'
 				+ (cpuControlled ? ' | BOTPLAY' : "");
 		}
+		else if (ClientPrefs.data.scoretxtstyle == 'V-Slice')
+		{
+			tempScore = 'Score: ${songScore}' + (cpuControlled ? ' | BOTPLAY' : "");
+		}
 		else
 		{
 			tempScore = 'Score: ${songScore}' + (!instakillOnMiss ? ' | Misses: ${songMisses}' : "") + ' | Rating: ${str}'
@@ -1518,7 +1543,7 @@ class PlayState extends MusicBeatState
 
 	public function doScoreBop():Void
 	{
-		if (!ClientPrefs.data.scoreZoom || ClientPrefs.data.scoretxtstyle == 'Kade')
+		if (!ClientPrefs.data.scoreZoom || ClientPrefs.data.scoretxtstyle == 'Kade' || ClientPrefs.data.scoretxtstyle == 'V-Slice')
 			return;
 		if (scoreTxtTween != null)
 			scoreTxtTween.cancel();
@@ -4016,6 +4041,36 @@ class PlayState extends MusicBeatState
 			spr.playAnim('static');
 			spr.resetAnim = 0;
 		}
+
+		// vsliceAnim功能：当按键释放时，如果该按键处于激活状态，则返回idle动画
+		if (ClientPrefs.data.vsliceAnim && vsliceAnimActiveKeys[key])
+		{
+			// 重置该按键的激活状态
+			vsliceAnimActiveKeys[key] = false;
+			vsliceAnimCurrentAnim[key] = '';
+			
+			// 检查是否还有其他按键处于激活状态
+			var anyKeyActive:Bool = false;
+			for (i in 0...vsliceAnimActiveKeys.length)
+			{
+				if (vsliceAnimActiveKeys[i])
+				{
+					anyKeyActive = true;
+					break;
+				}
+			}
+			
+			// 如果没有其他按键激活，则返回idle动画
+			if (!anyKeyActive && boyfriend != null && boyfriend.animation != null)
+			{
+				if (boyfriend.animation.curAnim != null && boyfriend.animation.curAnim.name != 'idle')
+				{
+					boyfriend.playAnim('idle', true);
+					boyfriend.holdTimer = 0;
+				}
+			}
+		}
+
 		callOnScripts('onKeyRelease', [key]);
 	}
 
@@ -4348,7 +4403,25 @@ class PlayState extends MusicBeatState
 
 			if (char != null)
 			{
-				char.playAnim(animToPlay + note.animSuffix, true);
+				// vsliceAnim功能：当启用时，对于长条音符，只在第一次命中时播放动画
+				var noteDataIndex:Int = Math.round(Math.abs(note.noteData));
+				if (ClientPrefs.data.vsliceAnim && note.isSustainNote)
+				{
+					// 如果是长条音符且vsliceAnim启用
+					if (!vsliceAnimActiveKeys[noteDataIndex])
+					{
+						// 第一次命中，播放动画并标记为激活状态
+						char.playAnim(animToPlay + note.animSuffix, true);
+						vsliceAnimActiveKeys[noteDataIndex] = true;
+						vsliceAnimCurrentAnim[noteDataIndex] = animToPlay;
+					}
+					// 否则不播放动画（保持当前动画状态）
+				}
+				else
+				{
+					// 普通音符或vsliceAnim未启用，正常播放动画
+					char.playAnim(animToPlay + note.animSuffix, true);
+				}
 				char.holdTimer = 0;
 
 				if (note.noteType == 'Hey!')

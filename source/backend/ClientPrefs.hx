@@ -136,6 +136,7 @@ import states.TitleState;
 	public var showNPS:Bool = true; // Show NPS in the ScoreTxt
 	public var showResultScreen:Bool = true; // Show the result screen after finishing a song
 	public var comboSprDisplay:Bool = false; //据说是官方废稿用的sprite，我不知道就是了
+	public var vsliceAnim:Bool = false; // 启用时，正确命中音符且未撒手时不会连续播放同一动画
 
 
 }

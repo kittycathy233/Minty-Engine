@@ -150,6 +150,12 @@ class ExtraGameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
+		var option:Option = new Option('Vslice Anim',
+		Language.get("vslice_animtest_desc"),
+		'vsliceAnim',
+		'bool');
+		addOption(option);
+
 		var option:Option = new Option('smooth HP Bar',
 		Language.get("smooth_hpbar_desc"),
 		'smoothHP',

@@ -4,7 +4,8 @@ package;
 import extension.androidtools.content.Context;
 #end
 
-import debug.FPSCounter;
+//import debug.FPSCounter;
+import debug.SimpleFPSCounter;
 
 import flixel.graphics.FlxGraphic;
 import flixel.FlxGame;
@@ -46,12 +47,12 @@ class Main extends Sprite
 		height: 720, // WINDOW height
 		initialState: TitleState, // initial game state
 		zoom: -1.0, // game state bounds
-		framerate: 60, // default framerate
+		framerate: 120, // default framerate
 		skipSplash: false, // if the default flixel splash screen should be skipped
 		startFullscreen: false // if the game should start at fullscreen mode
 	};
 
-	public static var fpsVar:FPSCounter;
+	public static var fpsVar:SimpleFPSCounter;
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
 
@@ -130,7 +131,7 @@ class Main extends Sprite
 		MainMenuState.mtEngineVersion = Application.current.meta.get('version');
 
 		#if !mobile
-		fpsVar = new FPSCounter(10, 10, 0xFFFFFF);
+		fpsVar = new SimpleFPSCounter(10, 10);
 		addChild(fpsVar);
 		fpsVar.x = 10;
 		Lib.current.stage.align = "tl";

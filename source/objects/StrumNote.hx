@@ -185,8 +185,8 @@ class StrumNote extends FlxSprite
 				resetAnim = 0;
 			}
 		}
-		if (PlayState.SONG.mania != mania)
-		mania = PlayState.SONG.mania;
+		if (PlayState.SONG != null && PlayState.SONG.mania != mania)
+			mania = PlayState.SONG.mania;
 
 		super.update(elapsed);
 	}
